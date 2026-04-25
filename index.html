@@ -28,38 +28,27 @@
     min-height: 100vh;
     line-height: 1.6;
   }
+
   /* ─── PIN SCREEN ─── */
   #pin-screen {
     position: fixed; inset: 0;
     background: var(--bg);
     display: flex; align-items: center; justify-content: center;
-    z-index: 9999;
-    flex-direction: column;
-    gap: 0;
+    z-index: 9999; flex-direction: column;
   }
   .pin-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 40px 36px 36px;
-    width: 360px;
-    max-width: 95vw;
-    box-shadow: var(--shadow);
-    animation: slideUp 0.4s ease;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 40px 36px 36px;
+    width: 360px; max-width: 95vw;
+    box-shadow: var(--shadow); animation: slideUp 0.4s ease;
   }
   @keyframes slideUp {
     from { opacity:0; transform:translateY(30px); }
     to   { opacity:1; transform:translateY(0); }
   }
-  .pin-logo {
-    text-align: center;
-    margin-bottom: 28px;
-  }
-  .pin-logo h1 {
-    font-size: 1.4rem; font-weight: 700; color: var(--accent);
-    letter-spacing: -0.5px;
-  }
-  .pin-logo p { color: var(--text2); font-size: 0.82rem; margin-top: 4px; }
+  .pin-logo { text-align: center; margin-bottom: 28px; }
+  .pin-logo h1 { font-size: 1.4rem; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+  .pin-logo p  { color: var(--text2); font-size: 0.82rem; margin-top: 4px; }
   .pin-tabs {
     display: flex; gap: 8px; margin-bottom: 24px;
     background: var(--surface2); border-radius: 10px; padding: 4px;
@@ -69,55 +58,26 @@
     color: var(--text2); border-radius: 8px; cursor: pointer;
     font-family: inherit; font-size: 0.85rem; transition: all 0.2s;
   }
-  .pin-tab.active {
-    background: var(--accent); color: #fff; font-weight: 600;
-  }
-  .pin-field-label {
-    font-size: 0.78rem; color: var(--text2); margin-bottom: 6px; display: block;
-  }
-  .pin-input-wrap {
-    position: relative; margin-bottom: 14px;
-  }
-  .pin-input-wrap input {
-    width: 100%; padding: 12px 44px 12px 14px;
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 10px; color: var(--text); font-size: 1rem;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 6px; text-align: center;
-    outline: none; transition: border 0.2s;
-  }
-  .pin-input-wrap input:focus { border-color: var(--accent); }
-  .pin-eye {
-    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-    background: none; border: none; color: var(--text2); cursor: pointer;
-    font-size: 1.1rem; padding: 2px;
-  }
-  .pin-numpad {
-    display: grid; grid-template-columns: repeat(3, 1fr);
-    gap: 8px; margin: 12px 0 18px;
-  }
+  .pin-tab.active { background: var(--accent); color: #fff; font-weight: 600; }
+  .pin-field-label { font-size: 0.78rem; color: var(--text2); margin-bottom: 6px; display: block; }
+  .pin-numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 18px; }
   .pin-key {
     background: var(--surface2); border: 1px solid var(--border);
     border-radius: 10px; padding: 14px; font-size: 1.1rem;
     font-family: 'JetBrains Mono', monospace; color: var(--text);
     cursor: pointer; transition: all 0.15s; user-select: none;
   }
-  .pin-key:hover { background: var(--border); }
+  .pin-key:hover  { background: var(--border); }
   .pin-key:active { transform: scale(0.94); }
-  .pin-key.del { color: var(--danger); font-size: 1rem; }
-  .pin-key.zero { grid-column: 2; }
-  .pin-dots {
-    display: flex; justify-content: center; gap: 10px; margin: 8px 0 16px;
-  }
+  .pin-key.del    { color: var(--danger); font-size: 1rem; }
+  .pin-key.zero   { grid-column: 2; }
+  .pin-dots { display: flex; justify-content: center; gap: 10px; margin: 8px 0 16px; }
   .pin-dot {
     width: 12px; height: 12px; border-radius: 50%;
-    border: 2px solid var(--border); background: transparent;
-    transition: all 0.2s;
+    border: 2px solid var(--border); background: transparent; transition: all 0.2s;
   }
   .pin-dot.filled { background: var(--accent); border-color: var(--accent); }
-  .pin-info {
-    font-size: 0.78rem; color: var(--text2); margin-bottom: 12px; text-align: center;
-  }
+  .pin-info { font-size: 0.78rem; color: var(--text2); margin-bottom: 12px; text-align: center; }
   .pin-info span { color: var(--accent); cursor: pointer; }
   .pin-btn {
     width: 100%; padding: 13px; border: none; border-radius: 10px;
@@ -125,12 +85,9 @@
     font-family: inherit; font-weight: 600; cursor: pointer;
     transition: opacity 0.2s; letter-spacing: 0.2px;
   }
-  .pin-btn:hover { opacity: 0.88; }
+  .pin-btn:hover    { opacity: 0.88; }
   .pin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .pin-err {
-    color: var(--danger); font-size: 0.8rem; text-align: center;
-    min-height: 18px; margin-top: 8px;
-  }
+  .pin-err { color: var(--danger); font-size: 0.8rem; text-align: center; min-height: 18px; margin-top: 8px; }
   .pin-remember {
     display: flex; align-items: center; gap: 8px;
     font-size: 0.8rem; color: var(--text2); margin-top: 12px;
@@ -142,14 +99,10 @@
   #app { display: none; }
   #app.visible { display: block; }
 
-  /* Header */
   .top-bar {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 20px;
-    display: flex; align-items: center; justify-content: space-between;
-    position: sticky; top: 0; z-index: 100;
-    backdrop-filter: blur(10px);
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px);
   }
   .top-bar h1 { font-size: 1.05rem; font-weight: 700; color: var(--accent); }
   .top-bar-right { display: flex; align-items: center; gap: 10px; }
@@ -160,45 +113,17 @@
     display: flex; align-items: center; gap: 6px;
   }
   .user-badge .dot { width:7px; height:7px; border-radius:50%; background:var(--accent2); }
-  #sync-status {
-    font-size: 0.72rem; color: var(--text2); font-family: 'JetBrains Mono', monospace;
-  }
+  #sync-status { font-size: 0.72rem; color: var(--text2); font-family: 'JetBrains Mono', monospace; }
   .logout-btn {
     background: var(--surface2); border: 1px solid var(--border);
     border-radius: 8px; padding: 6px 12px; color: var(--danger);
-    cursor: pointer; font-size: 0.8rem; font-family: inherit;
-    transition: all 0.2s;
+    cursor: pointer; font-size: 0.8rem; font-family: inherit; transition: all 0.2s;
   }
   .logout-btn:hover { background: rgba(248,81,73,0.1); border-color: var(--danger); }
 
-  /* Content */
   .container { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
 
-  /* Budget Cards */
-  .budget-section {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 20px; margin-bottom: 20px;
-  }
-  .budget-section h2 {
-    font-size: 0.85rem; color: var(--text2); text-transform: uppercase;
-    letter-spacing: 1.2px; margin-bottom: 14px;
-  }
-  .budget-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
-  .budget-row input {
-    flex: 1; min-width: 160px; padding: 10px 14px;
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; color: var(--text); font-size: 0.95rem;
-    outline: none; transition: border 0.2s; font-family: inherit;
-  }
-  .budget-row input:focus { border-color: var(--accent); }
-  .btn-save {
-    padding: 10px 22px; background: var(--accent2); color: #fff;
-    border: none; border-radius: 8px; cursor: pointer; font-weight: 600;
-    font-family: inherit; font-size: 0.88rem; transition: opacity 0.2s; white-space: nowrap;
-  }
-  .btn-save:hover { opacity: 0.85; }
-
-  /* Stats Grid */
+  /* Stats */
   .stats-grid {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 12px; margin-bottom: 20px;
@@ -208,86 +133,50 @@
     border-radius: var(--radius); padding: 18px 16px;
     position: relative; overflow: hidden;
   }
-  .stat-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  }
-  .stat-card.budget::before { background: var(--accent); }
+  .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
   .stat-card.spent::before { background: var(--danger); }
-  .stat-card.remaining::before { background: var(--accent2); }
-  .stat-card.pct::before { background: var(--warn); }
+  .stat-card.total::before { background: var(--accent); }
+  .stat-card.count::before { background: var(--accent2); }
+  .stat-card.avg::before   { background: var(--warn); }
   .stat-label { font-size: 0.7rem; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; }
-  .stat-value {
-    font-size: 1.6rem; font-weight: 700; margin-top: 6px;
-    font-family: 'JetBrains Mono', monospace; letter-spacing: -1px;
-  }
-  .stat-card.budget .stat-value { color: var(--accent); }
+  .stat-value { font-size: 1.6rem; font-weight: 700; margin-top: 6px; font-family: 'JetBrains Mono', monospace; letter-spacing: -1px; }
   .stat-card.spent .stat-value { color: var(--danger); }
-  .stat-card.remaining .stat-value { color: var(--accent2); }
-  .stat-card.pct .stat-value { color: var(--warn); }
+  .stat-card.total .stat-value { color: var(--accent); }
+  .stat-card.count .stat-value { color: var(--accent2); }
+  .stat-card.avg .stat-value   { color: var(--warn); }
 
-  /* All-time stats */
-  .alltime-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 12px; margin-bottom: 20px;
-  }
-  .alltime-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 14px 16px;
-    display: flex; flex-direction: column; gap: 2px;
-  }
-  .alltime-label { font-size: 0.7rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; }
-  .alltime-value { font-size: 1.15rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text); }
-
-  /* Charts side by side */
-  .charts-row {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 14px; margin-bottom: 20px;
-  }
+  /* Charts */
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
   @media(max-width:620px) { .charts-row { grid-template-columns: 1fr; } }
-  .chart-box {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 18px;
-  }
+  .chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
   .chart-box h3 { font-size: 0.8rem; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
   canvas { width: 100% !important; }
-
-  /* Budget progress bar */
-  .progress-bar-wrap { margin-top: 10px; }
-  .progress-bar {
-    height: 6px; background: var(--surface2); border-radius: 99px;
-    overflow: hidden; margin-top: 4px;
-  }
-  .progress-fill {
-    height: 100%; border-radius: 99px; transition: width 0.5s ease;
-    background: var(--accent2);
-  }
-  .progress-fill.warn { background: var(--warn); }
-  .progress-fill.danger { background: var(--danger); }
 
   /* Add Expense */
   .add-section {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 22px; margin-bottom: 20px;
   }
-  .add-section h2 { font-size: 0.85rem; color: var(--text2); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 18px; }
+  .add-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px; gap: 12px; flex-wrap: wrap;
+  }
+  .add-section-header h2 { font-size: 0.85rem; color: var(--text2); text-transform: uppercase; letter-spacing: 1.2px; }
+  .mic-row { display: flex; align-items: center; gap: 10px; }
   .mic-btn {
     display: flex; align-items: center; justify-content: center;
-    width: 60px; height: 60px; border-radius: 50%;
+    width: 42px; height: 42px; border-radius: 50%;
     background: var(--surface2); border: 2px solid var(--border);
-    font-size: 1.6rem; cursor: pointer; margin: 0 auto 12px;
-    transition: all 0.2s;
+    font-size: 1.2rem; cursor: pointer; flex-shrink: 0; transition: all 0.2s;
   }
-  .mic-btn:hover { border-color: var(--accent); }
-  .mic-btn.recording { border-color: var(--danger); animation: pulse 1s infinite; }
+  .mic-btn:hover { border-color: var(--accent); background: rgba(88,166,255,0.1); }
+  .mic-btn.recording { border-color: var(--danger); background: rgba(248,81,73,0.1); animation: pulse 1s infinite; }
   @keyframes pulse {
     0%,100% { box-shadow: 0 0 0 0 rgba(248,81,73,0.4); }
-    50% { box-shadow: 0 0 0 10px rgba(248,81,73,0); }
+    50%      { box-shadow: 0 0 0 8px rgba(248,81,73,0); }
   }
-  #voice-status { text-align:center; font-size:0.8rem; color:var(--text2); margin-bottom:14px; min-height:18px; }
-  .form-grid {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 12px; margin-bottom: 12px;
-  }
+  #voice-status { font-size: 0.78rem; color: var(--text2); min-height: 16px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
   @media(max-width:500px) { .form-grid { grid-template-columns: 1fr; } }
   .form-group { display: flex; flex-direction: column; gap: 5px; }
   .form-group label { font-size: 0.75rem; color: var(--text2); }
@@ -307,49 +196,35 @@
   }
   .btn-add:hover { opacity: 0.85; }
 
-  /* Expenses list */
-  .expenses-section {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 22px;
-  }
-  .expenses-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 16px; flex-wrap: wrap; gap: 10px;
-  }
+  /* Expenses List */
+  .expenses-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+  .expenses-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
   .expenses-header h2 { font-size: 0.85rem; color: var(--text2); text-transform: uppercase; letter-spacing: 1.2px; }
-  .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-scroll { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
   .filter-btn {
-    padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
-    background: transparent; color: var(--text2); font-size: 0.78rem;
-    cursor: pointer; font-family: inherit; transition: all 0.2s;
+    padding: 4px 11px; border-radius: 20px; border: 1px solid var(--border);
+    background: transparent; color: var(--text2); font-size: 0.75rem;
+    cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap;
   }
   .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
   .btn-export {
     padding: 7px 14px; background: var(--surface2); border: 1px solid var(--border);
     color: var(--text); border-radius: 8px; font-size: 0.8rem;
-    cursor: pointer; font-family: inherit; transition: all 0.2s;
+    cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap;
   }
   .btn-export:hover { border-color: var(--accent); color: var(--accent); }
   #expense-list { display: flex; flex-direction: column; gap: 8px; }
   .expense-item {
     display: flex; align-items: center; gap: 12px;
     background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 12px 14px;
-    transition: border 0.2s;
+    border-radius: 10px; padding: 12px 14px; transition: border 0.2s;
   }
   .expense-item:hover { border-color: var(--accent); }
-  .cat-icon {
-    width: 36px; height: 36px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem; flex-shrink: 0;
-  }
+  .cat-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
   .exp-info { flex: 1; min-width: 0; }
   .exp-name { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .exp-meta { font-size: 0.75rem; color: var(--text2); }
-  .exp-amount {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700; font-size: 1rem; color: var(--danger); flex-shrink: 0;
-  }
+  .exp-amount { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1rem; color: var(--danger); flex-shrink: 0; }
   .exp-actions { display: flex; gap: 6px; flex-shrink: 0; }
   .btn-icon {
     width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border);
@@ -357,34 +232,17 @@
     display: flex; align-items: center; justify-content: center; transition: all 0.2s;
   }
   .btn-icon.edit:hover { border-color: var(--accent); color: var(--accent); }
-  .btn-icon.del:hover { border-color: var(--danger); color: var(--danger); }
-  .empty-state {
-    text-align: center; padding: 40px 20px; color: var(--text2); font-size: 0.9rem;
-  }
+  .btn-icon.del:hover  { border-color: var(--danger);  color: var(--danger); }
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text2); font-size: 0.9rem; }
 
   /* Modal */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
-    display: flex; align-items: center; justify-content: center; z-index: 500;
-    backdrop-filter: blur(4px);
-  }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 500; backdrop-filter: blur(4px); }
   .modal-overlay.hidden { display: none; }
-  .modal {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 16px; padding: 28px; width: 400px; max-width: 95vw;
-    box-shadow: var(--shadow); animation: slideUp 0.3s ease;
-  }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 400px; max-width: 95vw; box-shadow: var(--shadow); animation: slideUp 0.3s ease; }
   .modal h3 { font-size: 1rem; margin-bottom: 18px; }
   .modal-btns { display: flex; gap: 10px; margin-top: 16px; }
-  .btn-cancel {
-    flex: 1; padding: 11px; background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; color: var(--text); cursor: pointer; font-family: inherit;
-  }
-  .btn-confirm {
-    flex: 1; padding: 11px; background: var(--accent); border: none;
-    border-radius: 8px; color: #fff; font-weight: 600; cursor: pointer;
-    font-family: inherit;
-  }
+  .btn-cancel  { flex:1; padding:11px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer; font-family:inherit; }
+  .btn-confirm { flex:1; padding:11px; background:var(--accent); border:none; border-radius:8px; color:#fff; font-weight:600; cursor:pointer; font-family:inherit; }
 
   /* Toast */
   #toast {
@@ -394,20 +252,12 @@
     box-shadow: var(--shadow); transition: transform 0.3s ease; z-index: 9000;
     pointer-events: none; white-space: nowrap;
   }
-  #toast.show { transform: translateX(-50%) translateY(0); }
+  #toast.show    { transform: translateX(-50%) translateY(0); }
   #toast.success { border-color: var(--accent2); color: var(--accent2); }
-  #toast.error { border-color: var(--danger); color: var(--danger); }
+  #toast.error   { border-color: var(--danger);  color: var(--danger); }
 
-  .loading-screen {
-    position: fixed; inset: 0; background: var(--bg);
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 16px; z-index: 9998;
-  }
-  .spinner {
-    width: 36px; height: 36px; border: 3px solid var(--border);
-    border-top-color: var(--accent); border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
+  .loading-screen { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px; z-index: 9998; }
+  .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .loading-screen p { color: var(--text2); font-size: 0.85rem; }
 </style>
@@ -431,28 +281,25 @@
       <button class="pin-tab active" id="tab-login" onclick="switchTab('login')">Login</button>
       <button class="pin-tab" id="tab-register" onclick="switchTab('register')">Create Account</button>
     </div>
-
     <!-- Login -->
     <div id="form-login">
       <label class="pin-field-label">Enter your PIN</label>
       <div class="pin-dots" id="login-dots"></div>
       <div class="pin-numpad" id="login-numpad"></div>
       <div class="pin-info">Max 6 digits. <span onclick="clearPin('login')">Clear</span></div>
-      <button class="pin-btn" id="login-btn" onclick="doLogin()">Login</button>
+      <button class="pin-btn" onclick="doLogin()">Login</button>
       <label class="pin-remember">
         <input type="checkbox" id="remember-me" checked/> Remember me (stay logged in)
       </label>
     </div>
-
     <!-- Register -->
     <div id="form-register" style="display:none">
       <label class="pin-field-label">Choose PIN (4 or 6 digits)</label>
       <div class="pin-dots" id="reg-dots"></div>
       <div class="pin-numpad" id="reg-numpad"></div>
       <div class="pin-info">Enter 4 or 6 digits. <span onclick="clearPin('reg')">Clear</span></div>
-      <button class="pin-btn" id="reg-btn" onclick="doRegister()">Create Account</button>
+      <button class="pin-btn" onclick="doRegister()">Create Account</button>
     </div>
-
     <div class="pin-err" id="pin-err"></div>
   </div>
 </div>
@@ -469,57 +316,39 @@
   </div>
 
   <div class="container">
-    <!-- Budget -->
-    <div class="budget-section">
-      <h2>Monthly Budget Tracker</h2>
-      <div class="budget-row">
-        <input type="number" id="budget-input" placeholder="Set monthly budget (₹)" min="0"/>
-        <button class="btn-save" onclick="saveBudget()">Save Budget</button>
-      </div>
-      <div class="progress-bar-wrap" id="progress-wrap" style="display:none">
-        <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text2);margin-top:10px">
-          <span>Spent</span><span id="prog-label">0%</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-      </div>
-    </div>
 
     <!-- Stats -->
     <div class="stats-grid">
-      <div class="stat-card budget"><div class="stat-label">Budget</div><div class="stat-value" id="stat-budget">₹0</div></div>
-      <div class="stat-card spent"><div class="stat-label">Spent This Month</div><div class="stat-value" id="stat-spent">₹0</div></div>
-      <div class="stat-card remaining"><div class="stat-label">Remaining</div><div class="stat-value" id="stat-remaining">₹0</div></div>
-      <div class="stat-card pct"><div class="stat-label">Spent %</div><div class="stat-value" id="stat-pct">0%</div></div>
-    </div>
-
-    <!-- All-time -->
-    <div class="alltime-grid">
-      <div class="alltime-card"><div class="alltime-label">All Time Total</div><div class="alltime-value" id="stat-total">₹0</div></div>
-      <div class="alltime-card"><div class="alltime-label">Total Count</div><div class="alltime-value" id="stat-count">0</div></div>
-      <div class="alltime-card"><div class="alltime-label">This Month</div><div class="alltime-value" id="stat-month">₹0</div></div>
-      <div class="alltime-card"><div class="alltime-label">Avg Per Expense</div><div class="alltime-value" id="stat-avg">₹0</div></div>
+      <div class="stat-card spent"><div class="stat-label">This Month</div><div class="stat-value" id="stat-spent">₹0</div></div>
+      <div class="stat-card total"><div class="stat-label">All Time Total</div><div class="stat-value" id="stat-total">₹0</div></div>
+      <div class="stat-card count"><div class="stat-label">Total Entries</div><div class="stat-value" id="stat-count">0</div></div>
+      <div class="stat-card avg"><div class="stat-label">Avg Per Entry</div><div class="stat-value" id="stat-avg">₹0</div></div>
     </div>
 
     <!-- Charts -->
     <div class="charts-row">
       <div class="chart-box">
         <h3>Spending by Category</h3>
-        <canvas id="cat-chart" height="200"></canvas>
+        <canvas id="cat-chart" height="220"></canvas>
       </div>
       <div class="chart-box">
-        <h3>Monthly Expenses</h3>
-        <canvas id="month-chart" height="200"></canvas>
+        <h3>Monthly Trend</h3>
+        <canvas id="month-chart" height="220"></canvas>
       </div>
     </div>
 
     <!-- Add Expense -->
     <div class="add-section">
-      <h2>Add Expense</h2>
-      <button class="mic-btn" id="mic-btn" onclick="toggleVoice()">🎤</button>
-      <div id="voice-status">Click mic to speak…</div>
+      <div class="add-section-header">
+        <h2>Add Expense</h2>
+        <div class="mic-row">
+          <button class="mic-btn" id="mic-btn" onclick="toggleVoice()" title="Voice input">🎤</button>
+          <span id="voice-status">Tap mic to speak</span>
+        </div>
+      </div>
       <div class="form-grid">
         <div class="form-group">
-          <label>Expense Name *</label>
+          <label>Name *</label>
           <input type="text" id="exp-name" placeholder="e.g. Lunch"/>
         </div>
         <div class="form-group">
@@ -533,25 +362,34 @@
         <div class="form-group">
           <label>Category</label>
           <select id="exp-cat">
-            <option>Food</option><option>Transport</option><option>Shopping</option>
-            <option>Medical</option><option>Utilities</option><option>Other</option>
+            <option>Food</option>
+            <option>Grocery</option>
+            <option>Transport</option>
+            <option>Shopping</option>
+            <option>Bills</option>
+            <option>Rent</option>
+            <option>Health</option>
+            <option>Education</option>
+            <option>Entertainment</option>
+            <option>Travel</option>
+            <option>Salary</option>
+            <option>Other</option>
           </select>
         </div>
       </div>
       <button class="btn-add" onclick="addExpense()">Add Expense</button>
     </div>
 
-    <!-- Expenses list -->
+    <!-- Expenses List -->
     <div class="expenses-section">
       <div class="expenses-header">
         <h2>Recent Expenses</h2>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <div class="filter-row" id="filter-row"></div>
-          <button class="btn-export" onclick="exportCSV()">Export CSV</button>
-        </div>
+        <button class="btn-export" onclick="exportCSV()">Export CSV</button>
       </div>
+      <div class="filter-scroll" id="filter-row"></div>
       <div id="expense-list"><div class="empty-state">No expenses yet</div></div>
     </div>
+
   </div>
 </div>
 
@@ -560,13 +398,23 @@
   <div class="modal">
     <h3>✏️ Edit Expense</h3>
     <div class="form-grid">
-      <div class="form-group"><label>Expense Name *</label><input type="text" id="edit-name"/></div>
+      <div class="form-group"><label>Name *</label><input type="text" id="edit-name"/></div>
       <div class="form-group"><label>Amount *</label><input type="number" id="edit-amount" min="0"/></div>
       <div class="form-group"><label>Date *</label><input type="date" id="edit-date"/></div>
       <div class="form-group"><label>Category</label>
         <select id="edit-cat">
-          <option>Food</option><option>Transport</option><option>Shopping</option>
-          <option>Medical</option><option>Utilities</option><option>Other</option>
+          <option>Food</option>
+          <option>Grocery</option>
+          <option>Transport</option>
+          <option>Shopping</option>
+          <option>Bills</option>
+          <option>Rent</option>
+          <option>Health</option>
+          <option>Education</option>
+          <option>Entertainment</option>
+          <option>Travel</option>
+          <option>Salary</option>
+          <option>Other</option>
         </select>
       </div>
     </div>
@@ -579,18 +427,16 @@
 
 <div id="toast"></div>
 
-<!-- Chart.js UMD bundle - fully self-contained, no sub-dependency issues -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-<!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getAuth, signInAnonymously,
-  signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, browserSessionPersistence
+  getAuth, signInAnonymously, signOut, onAuthStateChanged,
+  setPersistence, browserLocalPersistence, browserSessionPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
-  getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc,
+  getFirestore, collection, addDoc, doc, deleteDoc, updateDoc,
   query, where, orderBy, onSnapshot, setDoc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -605,23 +451,39 @@ const firebaseConfig = {
   measurementId: "G-5WTV35NB3W"
 };
 
-const app = initializeApp(firebaseConfig);
+const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
+
+// ── Categories (single source of truth) ──────────────────────
+const CATEGORIES = [
+  'Food','Grocery','Transport','Shopping','Bills','Rent',
+  'Health','Education','Entertainment','Travel','Salary','Other'
+];
+
+const CAT_COLORS = {
+  Food:'#58a6ff', Grocery:'#3fb950', Transport:'#d29922', Shopping:'#f78166',
+  Bills:'#a371f7', Rent:'#ff7b72', Health:'#39d353', Education:'#76e3ea',
+  Entertainment:'#ffa657', Travel:'#79c0ff', Salary:'#56d364', Other:'#8b949e'
+};
+
+const CAT_EMOJIS = {
+  Food:'🍕', Grocery:'🛒', Transport:'🚗', Shopping:'🛍️',
+  Bills:'💡', Rent:'🏠', Health:'💊', Education:'📚',
+  Entertainment:'🎬', Travel:'✈️', Salary:'💰', Other:'📦'
+};
 
 // ── State ─────────────────────────────────────────────────────
 let currentUser = null;
 let expenses    = [];
-let budget      = 0;
 let editId      = null;
 let activeFilter = 'All';
 let catChart, monthChart;
 let unsubscribeExpenses = null;
 
-// ── PIN Numpad Helper ─────────────────────────────────────────
+// ── PIN Numpad ────────────────────────────────────────────────
 const pinState = { login: '', reg: '' };
-const PIN_MAX  = 6;
-const PIN_MIN  = 4;
+const PIN_MAX  = 6, PIN_MIN = 4;
 
 function buildNumpad(prefix) {
   const numpad = document.getElementById(`${prefix}-numpad`);
@@ -662,54 +524,42 @@ function renderDots(prefix) {
     wrap.appendChild(d);
   }
 }
-function clearPin(prefix) {
-  pinState[prefix] = '';
-  renderDots(prefix);
-}
-
+function clearPin(prefix) { pinState[prefix] = ''; renderDots(prefix); }
 window.clearPin = clearPin;
 
-// Tab switch
 window.switchTab = function(tab) {
-  document.getElementById('form-login').style.display   = tab==='login'    ? '' : 'none';
+  document.getElementById('form-login').style.display    = tab==='login'    ? '' : 'none';
   document.getElementById('form-register').style.display = tab==='register' ? '' : 'none';
   document.getElementById('tab-login').classList.toggle('active',    tab==='login');
   document.getElementById('tab-register').classList.toggle('active', tab==='register');
   document.getElementById('pin-err').textContent = '';
 };
 
-// ── PIN hashing helper ────────────────────────────────────────
+// ── PIN hashing ───────────────────────────────────────────────
 async function hashPin(pin) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin + '_ExpenseTracker'));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
 // ── Auth ──────────────────────────────────────────────────────
-// PIN-only login: look up stored UID in localStorage, verify PIN hash from Firestore
 window.doLogin = async function() {
   const pin = pinState['login'];
   const err = document.getElementById('pin-err');
   err.textContent = '';
   if (pin.length < PIN_MIN) { err.textContent = `Enter at least ${PIN_MIN} digits.`; return; }
-
   const storedUid = localStorage.getItem('expense_tracker_uid');
-  if (!storedUid) { err.textContent = 'No account found on this device. Please create one first.'; return; }
-
+  if (!storedUid) { err.textContent = 'No account found on this device. Create one first.'; return; }
   const remember = document.getElementById('remember-me').checked;
   try {
     await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
-    // Sign in anonymously to get Firebase auth (UID will match stored one if persistence is set)
-    const userCred = await signInAnonymously(auth);
-    // Verify PIN against Firestore
+    await signInAnonymously(auth);
     const userDoc = await getDoc(doc(db, 'users', storedUid));
     if (!userDoc.exists()) { err.textContent = 'Account not found. Please create a new account.'; await signOut(auth); return; }
     const pinHash = await hashPin(pin);
     if (userDoc.data().pinHash !== pinHash) {
       err.textContent = 'Wrong PIN. Please try again.';
-      await signOut(auth);
-      return;
+      await signOut(auth); return;
     }
-    // PIN correct — auth state observer will handle the rest
   } catch(e) {
     err.textContent = 'Login failed. Please try again.';
     console.error(e);
@@ -721,10 +571,7 @@ window.doRegister = async function() {
   const err = document.getElementById('pin-err');
   err.textContent = '';
   if (pin.length < PIN_MIN) { err.textContent = `PIN must be ${PIN_MIN}–${PIN_MAX} digits.`; return; }
-
-  const existingUid = localStorage.getItem('expense_tracker_uid');
-  if (existingUid) { err.textContent = 'An account already exists on this device. Please login.'; return; }
-
+  if (localStorage.getItem('expense_tracker_uid')) { err.textContent = 'Account already exists. Please login.'; return; }
   try {
     const remember = document.getElementById('remember-me').checked;
     await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
@@ -733,7 +580,6 @@ window.doRegister = async function() {
     const pinHash = await hashPin(pin);
     await setDoc(doc(db, 'users', uid), { pinHash, createdAt: Date.now() }, { merge: true });
     localStorage.setItem('expense_tracker_uid', uid);
-    // Auth state observer will show app
   } catch(e) {
     err.textContent = 'Registration failed: ' + e.message;
     console.error(e);
@@ -750,7 +596,6 @@ window.doLogout = async function() {
 onAuthStateChanged(auth, async (user) => {
   document.getElementById('loading-screen').style.display = 'none';
   if (user) {
-    // Store UID for PIN-only login on return visits
     localStorage.setItem('expense_tracker_uid', user.uid);
     currentUser = user;
     document.getElementById('pin-screen').style.display = 'none';
@@ -759,37 +604,16 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById('exp-date').valueAsDate = new Date();
     initCharts();
     buildFilters();
-    await loadBudget();
     listenExpenses();
   } else {
-    currentUser = null;
-    expenses = [];
+    currentUser = null; expenses = [];
     document.getElementById('app').classList.remove('visible');
     document.getElementById('pin-screen').style.display = 'flex';
-    buildNumpad('login');
-    buildNumpad('reg');
+    buildNumpad('login'); buildNumpad('reg');
   }
 });
 
-// ── Firestore: Budget ─────────────────────────────────────────
-async function loadBudget() {
-  const ref = doc(db, 'users', currentUser.uid);
-  const snap = await getDoc(ref);
-  if (snap.exists()) {
-    budget = snap.data().budget || 0;
-    document.getElementById('budget-input').value = budget || '';
-  }
-  updateStats();
-}
-
-window.saveBudget = async function() {
-  budget = parseFloat(document.getElementById('budget-input').value) || 0;
-  await setDoc(doc(db, 'users', currentUser.uid), { budget }, { merge: true });
-  updateStats();
-  showToast('Budget saved!', 'success');
-};
-
-// ── Firestore: Expenses (real-time) ──────────────────────────
+// ── Firestore: Expenses ───────────────────────────────────────
 function listenExpenses() {
   if (unsubscribeExpenses) unsubscribeExpenses();
   const q = query(
@@ -800,9 +624,7 @@ function listenExpenses() {
   unsubscribeExpenses = onSnapshot(q, (snap) => {
     expenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     document.getElementById('sync-status').textContent = '✓ synced';
-    renderExpenses();
-    updateStats();
-    updateCharts();
+    renderExpenses(); updateStats(); updateCharts();
   }, () => {
     document.getElementById('sync-status').textContent = '⚠ offline';
   });
@@ -814,10 +636,8 @@ window.addExpense = async function() {
   const date   = document.getElementById('exp-date').value;
   const cat    = document.getElementById('exp-cat').value;
   if (!name || !amount || !date) { showToast('Fill all required fields', 'error'); return; }
-
   await addDoc(collection(db, 'expenses'), {
-    uid: currentUser.uid, name, amount, date, category: cat,
-    createdAt: Date.now()
+    uid: currentUser.uid, name, amount, date, category: cat, createdAt: Date.now()
   });
   document.getElementById('exp-name').value = '';
   document.getElementById('exp-amount').value = '';
@@ -856,24 +676,17 @@ window.saveEdit = async function() {
   showToast('Updated!', 'success');
 };
 
-// ── UI: Render Expenses ───────────────────────────────────────
-const catColors = {
-  Food:'#58a6ff', Transport:'#3fb950', Shopping:'#d29922',
-  Medical:'#f85149', Utilities:'#a371f7', Other:'#8b949e'
-};
-const catEmojis = {
-  Food:'🍕', Transport:'🚗', Shopping:'🛍️', Medical:'💊', Utilities:'💡', Other:'📦'
-};
-
+// ── Render Expenses ───────────────────────────────────────────
 function renderExpenses() {
-  const list = document.getElementById('expense-list');
-  let filtered = activeFilter === 'All' ? expenses : expenses.filter(e => e.category === activeFilter);
-  if (!filtered.length) {
-    list.innerHTML = '<div class="empty-state">No expenses yet</div>'; return;
-  }
-  list.innerHTML = filtered.map(e => `
+  const list     = document.getElementById('expense-list');
+  const filtered = activeFilter === 'All' ? expenses : expenses.filter(e => e.category === activeFilter);
+  if (!filtered.length) { list.innerHTML = '<div class="empty-state">No expenses yet</div>'; return; }
+  list.innerHTML = filtered.map(e => {
+    const color = CAT_COLORS[e.category] || CAT_COLORS.Other;
+    const emoji = CAT_EMOJIS[e.category] || '📦';
+    return `
     <div class="expense-item">
-      <div class="cat-icon" style="background:${catColors[e.category]}22;color:${catColors[e.category]}">${catEmojis[e.category]||'📦'}</div>
+      <div class="cat-icon" style="background:${color}22;color:${color}">${emoji}</div>
       <div class="exp-info">
         <div class="exp-name">${e.name}</div>
         <div class="exp-meta">${e.date} · ${e.category}</div>
@@ -881,106 +694,102 @@ function renderExpenses() {
       <div class="exp-amount">₹${Number(e.amount).toFixed(2)}</div>
       <div class="exp-actions">
         <button class="btn-icon edit" onclick="openEdit('${e.id}')">✏️</button>
-        <button class="btn-icon del" onclick="deleteExpense('${e.id}')">🗑️</button>
+        <button class="btn-icon del"  onclick="deleteExpense('${e.id}')">🗑️</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
-// ── UI: Stats ─────────────────────────────────────────────────
+// ── Stats ─────────────────────────────────────────────────────
 function updateStats() {
   const now   = new Date();
   const month = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const monthExp = expenses.filter(e => e.date.startsWith(month));
-  const spent    = monthExp.reduce((s,e) => s+Number(e.amount), 0);
-  const total    = expenses.reduce((s,e) => s+Number(e.amount), 0);
-  const avg      = expenses.length ? total/expenses.length : 0;
-  const rem      = budget - spent;
-  const pct      = budget ? Math.min((spent/budget)*100, 100) : 0;
-
-  document.getElementById('stat-budget').textContent    = '₹'+fmt(budget);
-  document.getElementById('stat-spent').textContent     = '₹'+fmt(spent);
-  document.getElementById('stat-remaining').textContent = '₹'+fmt(rem);
-  document.getElementById('stat-pct').textContent       = pct.toFixed(0)+'%';
-  document.getElementById('stat-total').textContent     = '₹'+fmt(total);
-  document.getElementById('stat-count').textContent     = expenses.length;
-  document.getElementById('stat-month').textContent     = '₹'+fmt(spent);
-  document.getElementById('stat-avg').textContent       = '₹'+fmt(avg);
-
-  if (budget > 0) {
-    document.getElementById('progress-wrap').style.display = '';
-    const fill = document.getElementById('progress-fill');
-    fill.style.width = pct+'%';
-    fill.className   = 'progress-fill' + (pct>=100?' danger':pct>=75?' warn':'');
-    document.getElementById('prog-label').textContent = pct.toFixed(0)+'%';
-  } else {
-    document.getElementById('progress-wrap').style.display = 'none';
-  }
+  const spent = expenses.filter(e => e.date.startsWith(month)).reduce((s,e) => s+Number(e.amount), 0);
+  const total = expenses.reduce((s,e) => s+Number(e.amount), 0);
+  const avg   = expenses.length ? total/expenses.length : 0;
+  document.getElementById('stat-spent').textContent = '₹'+fmt(spent);
+  document.getElementById('stat-total').textContent = '₹'+fmt(total);
+  document.getElementById('stat-count').textContent = expenses.length;
+  document.getElementById('stat-avg').textContent   = '₹'+fmt(avg);
 }
-
 function fmt(n) { return Number(n||0).toFixed(2); }
 
-// ── UI: Filters ───────────────────────────────────────────────
+// ── Filters ───────────────────────────────────────────────────
 function buildFilters() {
-  const cats = ['All','Food','Transport','Shopping','Medical','Utilities','Other'];
-  document.getElementById('filter-row').innerHTML = cats.map(c =>
+  document.getElementById('filter-row').innerHTML = ['All', ...CATEGORIES].map(c =>
     `<button class="filter-btn${c===activeFilter?' active':''}" onclick="setFilter('${c}')">${c}</button>`
   ).join('');
 }
-window.setFilter = function(c) {
-  activeFilter = c;
-  buildFilters();
-  renderExpenses();
-};
+window.setFilter = function(c) { activeFilter = c; buildFilters(); renderExpenses(); };
 
 // ── Charts ────────────────────────────────────────────────────
-function chartDefaults() {
-  return {
-    plugins: { legend: { labels: { color:'#8b949e', font:{size:11} } } },
-    scales:  { x:{ ticks:{color:'#8b949e'}, grid:{color:'#30363d'} }, y:{ ticks:{color:'#8b949e'}, grid:{color:'#30363d'} } }
-  };
-}
 function initCharts() {
+  if (catChart)   { catChart.destroy();   catChart   = null; }
+  if (monthChart) { monthChart.destroy(); monthChart = null; }
+
   catChart = new Chart(document.getElementById('cat-chart'), {
     type: 'doughnut',
-    data: { labels:[], datasets:[{data:[], backgroundColor:Object.values(catColors)}] },
-    options: { plugins:{ legend:{ labels:{color:'#8b949e', font:{size:11}} } } }
+    data: { labels:[], datasets:[{ data:[], backgroundColor: CATEGORIES.map(c => CAT_COLORS[c]) }] },
+    options: {
+      plugins: { legend: { position:'right', labels:{ color:'#8b949e', font:{size:10}, boxWidth:10, padding:8 } } }
+    }
   });
   monthChart = new Chart(document.getElementById('month-chart'), {
     type: 'bar',
-    data: { labels:[], datasets:[{label:'₹ Spent', data:[], backgroundColor:'#58a6ff55', borderColor:'#58a6ff', borderWidth:2}] },
-    options: chartDefaults()
+    data: { labels:[], datasets:[{ label:'₹ Spent', data:[], backgroundColor:'#58a6ff55', borderColor:'#58a6ff', borderWidth:2 }] },
+    options: {
+      plugins: { legend: { labels: { color:'#8b949e', font:{size:11} } } },
+      scales:  { x:{ ticks:{color:'#8b949e'}, grid:{color:'#30363d'} }, y:{ ticks:{color:'#8b949e'}, grid:{color:'#30363d'} } }
+    }
   });
 }
+
 function updateCharts() {
-  // category
+  if (!catChart || !monthChart) return;
+
+  // Category breakdown — only show categories with data
   const bycat = {};
   expenses.forEach(e => { bycat[e.category] = (bycat[e.category]||0) + Number(e.amount); });
-  catChart.data.labels   = Object.keys(bycat);
-  catChart.data.datasets[0].data = Object.values(bycat);
+  const catLabels = Object.keys(bycat);
+  catChart.data.labels = catLabels;
+  catChart.data.datasets[0].data = catLabels.map(c => bycat[c]);
+  catChart.data.datasets[0].backgroundColor = catLabels.map(c => CAT_COLORS[c] || CAT_COLORS.Other);
   catChart.update();
 
-  // monthly (last 6 months)
+  // Monthly trend — last 6 months
   const bymonth = {};
-  expenses.forEach(e => {
-    const m = e.date.slice(0,7);
-    bymonth[m] = (bymonth[m]||0) + Number(e.amount);
-  });
+  expenses.forEach(e => { const m = e.date.slice(0,7); bymonth[m] = (bymonth[m]||0) + Number(e.amount); });
   const sorted = Object.keys(bymonth).sort().slice(-6);
-  monthChart.data.labels = sorted.map(m => { const [y,mo]=m.split('-'); return `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Number(mo)-1]} ${y.slice(2)}`; });
+  const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  monthChart.data.labels = sorted.map(m => { const [y,mo]=m.split('-'); return `${MONTH_NAMES[Number(mo)-1]} ${y.slice(2)}`; });
   monthChart.data.datasets[0].data = sorted.map(m => bymonth[m]);
   monthChart.update();
 }
 
-// ── Voice ─────────────────────────────────────────────────────
+// ── Voice Input ───────────────────────────────────────────────
+// Voice keyword map: spoken word → category name
+const VOICE_KEYWORDS = {
+  food:'Food', lunch:'Food', dinner:'Food', breakfast:'Food', snack:'Food', restaurant:'Food', swiggy:'Food', zomato:'Food',
+  grocery:'Grocery', groceries:'Grocery', vegetables:'Grocery', fruits:'Grocery', supermarket:'Grocery', kirana:'Grocery',
+  transport:'Transport', cab:'Transport', auto:'Transport', uber:'Transport', ola:'Transport', bus:'Transport', metro:'Transport', petrol:'Transport', fuel:'Transport',
+  shopping:'Shopping', clothes:'Shopping', cloth:'Shopping', amazon:'Shopping', flipkart:'Shopping',
+  bills:'Bills', bill:'Bills', electricity:'Bills', water:'Bills', internet:'Bills', wifi:'Bills', recharge:'Bills', mobile:'Bills',
+  rent:'Rent',
+  health:'Health', medical:'Health', medicine:'Health', medicines:'Health', doctor:'Health', hospital:'Health', pharmacy:'Health', chemist:'Health',
+  education:'Education', school:'Education', college:'Education', tuition:'Education', course:'Education', books:'Education', fees:'Education',
+  entertainment:'Entertainment', movie:'Entertainment', movies:'Entertainment', netflix:'Entertainment', ott:'Entertainment', concert:'Entertainment', game:'Entertainment',
+  travel:'Travel', flight:'Travel', hotel:'Travel', trip:'Travel', holiday:'Travel', train:'Travel', booking:'Travel',
+  salary:'Salary', income:'Salary', stipend:'Salary',
+  other:'Other'
+};
+
 let recognition;
 window.toggleVoice = function() {
-  if (!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)) {
-    showToast('Voice not supported in this browser','error'); return;
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    showToast('Voice not supported in this browser', 'error'); return;
   }
   const mic = document.getElementById('mic-btn');
-  if (recognition && mic.classList.contains('recording')) {
-    recognition.stop(); return;
-  }
+  if (recognition && mic.classList.contains('recording')) { recognition.stop(); return; }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   recognition = new SR();
   recognition.lang = 'en-IN';
@@ -1001,11 +810,30 @@ window.toggleVoice = function() {
 
 function parseVoice(t) {
   const low = t.toLowerCase();
+  // Amount
   const numMatch = low.match(/(\d+(\.\d+)?)/);
   if (numMatch) document.getElementById('exp-amount').value = numMatch[1];
-  const cats = ['food','transport','shopping','medical','utilities','other'];
-  cats.forEach(c => { if (low.includes(c)) document.getElementById('exp-cat').value = c[0].toUpperCase()+c.slice(1); });
-  const name = t.replace(/(\d+(\.\d+)?)/,'').replace(/rupees?|inr|rs\.?/gi,'').replace(/for|on|spent|paid/gi,'').trim();
+  // Category
+  const words = low.split(/\s+/);
+  let matched = false;
+  for (const word of words) {
+    if (VOICE_KEYWORDS[word]) {
+      document.getElementById('exp-cat').value = VOICE_KEYWORDS[word];
+      matched = true; break;
+    }
+  }
+  if (!matched) {
+    // Try partial match
+    for (const [kw, cat] of Object.entries(VOICE_KEYWORDS)) {
+      if (low.includes(kw)) { document.getElementById('exp-cat').value = cat; break; }
+    }
+  }
+  // Name
+  const name = t
+    .replace(/(\d+(\.\d+)?)/g, '')
+    .replace(/rupees?|inr|rs\.?/gi, '')
+    .replace(/\b(for|on|spent|paid|in)\b/gi, '')
+    .trim();
   if (name) document.getElementById('exp-name').value = name;
 }
 
@@ -1023,8 +851,7 @@ window.exportCSV = function() {
 // ── Toast ─────────────────────────────────────────────────────
 function showToast(msg, type='') {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.className = `${type}`;
-  t.classList.add('show');
+  t.textContent = msg; t.className = type; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2800);
 }
 
@@ -1034,56 +861,15 @@ function showToast(msg, type='') {
 ═══════════════════════════════════════════════════════════════════
   SETUP INSTRUCTIONS
 ═══════════════════════════════════════════════════════════════════
-
-  1. FIREBASE CONSOLE  →  https://console.firebase.google.com
-     Project: expense-tracker-c8e5d
-
-  2. ENABLE Firebase Auth:
-     Authentication → Sign-in method → Anonymous → Enable
-     (Email/Password is no longer needed)
-
-  3. CREATE Firestore Database:
-     Firestore Database → Create database (start in production mode)
-
-  4. ADD these Firestore Security Rules:
-     (Firestore → Rules → Replace all → Publish)
-
-     rules_version = '2';
-     service cloud.firestore {
-       match /databases/{database}/documents {
-
-         // Users can only read/write their own profile
-         match /users/{userId} {
-           allow read, write: if request.auth != null && request.auth.uid == userId;
-         }
-
-         // Users can only read/write their own expenses
-         match /expenses/{expenseId} {
-           allow read, write: if request.auth != null
-                               && resource.data.uid == request.auth.uid;
-           allow create: if request.auth != null
-                          && request.resource.data.uid == request.auth.uid;
-         }
-       }
-     }
-
-  5. CREATE Firestore Composite Index (needed for the query):
-     Firestore → Indexes → Composite → Add index:
-       Collection: expenses
-       Fields:
-         uid        Ascending
-         date       Descending
-     (Or the app will show a link in console to auto-create it.)
-
-  6. DEPLOY to GitHub Pages:
-     Just replace index.html in your repo and push.
-     Your link stays the same:
-     https://gurudasrrathod-star.github.io/Expense-tracker/
-
-  NOTE: PIN-only auth uses Firebase Anonymous Auth.
-  The account is tied to this device/browser via localStorage.
-  If user clears localStorage, they will need to create a new account.
-
+  1. Firebase Console → Authentication → Anonymous → Enable
+  2. Firestore Security Rules:
+       match /users/{userId}   { allow read, write: if request.auth.uid == userId; }
+       match /expenses/{id}    { allow read, write: if request.auth != null
+                                   && resource.data.uid == request.auth.uid;
+                                 allow create: if request.auth != null
+                                   && request.resource.data.uid == request.auth.uid; }
+  3. Composite Index → expenses: uid ASC, date DESC
+  4. Push index.html to GitHub → auto-deploys to GitHub Pages
 ═══════════════════════════════════════════════════════════════════
 -->
 </body>
