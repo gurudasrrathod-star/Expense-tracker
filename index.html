@@ -131,7 +131,7 @@ select option{background:var(--surface2);}
   <div class="mic-section">
     <div class="mic-label">Voice Input</div>
     <button id="mic-btn" title="Tap to speak">🎤</button>
-    <div id="voice-feedback">Say e.g. "Lunch 250 food" or "School fees 500 education 10 April"</div>
+    <div id="voice-feedback">Say e.g. "Milk 50" or "Lunch 250 food" or "School fees 500 education 10 April"</div>
   </div>
 
   <!-- STATS -->
@@ -462,44 +462,54 @@ if('webkitSpeechRecognition' in window||'SpeechRecognition' in window){
 }else{micBtn.style.opacity='.4';micBtn.style.cursor='not-allowed';voiceFeedback.textContent='Voice not supported in this browser';}
 
 function parseVoice(text){
-  /* ---- Category keywords ---- */
+  /* ---- Category keywords ----
+     Key = spoken word (lowercase), Value = category name.
+     IMPORTANT: These words are used ONLY to detect category — they are
+     still included in the expense name so "milk 50" → name:"Milk", cat:"Groceries"
+  */
   const CW={
     food:'Food',restaurant:'Food',hotel:'Food',snack:'Food',dinner:'Food',lunch:'Food',breakfast:'Food',chai:'Food',coffee:'Food',
-    transport:'Transport',travel:'Transport',cab:'Transport',auto:'Transport',bus:'Transport',train:'Transport',uber:'Transport',ola:'Transport',fuel:'Transport',petrol:'Transport',
+    transport:'Transport',travel:'Transport',cab:'Transport',auto:'Transport',bus:'Transport',train:'Transport',uber:'Transport',ola:'Transport',fuel:'Transport',petrol:'Transport',rickshaw:'Transport',
     shopping:'Shopping',clothes:'Shopping',dress:'Shopping',shirt:'Shopping',shoes:'Shopping',mall:'Shopping',amazon:'Shopping',
     medical:'Medical',medicine:'Medical',doctor:'Medical',hospital:'Medical',pharmacy:'Medical',health:'Medical',clinic:'Medical',
     utilities:'Utilities',utility:'Utilities',electricity:'Utilities',water:'Utilities',wifi:'Utilities',internet:'Utilities',gas:'Utilities',rent:'Utilities',
     education:'Education',school:'Education',college:'Education',tuition:'Education',fees:'Education',course:'Education',book:'Education',books:'Education',stationery:'Education',exam:'Education',training:'Education',class:'Education',uniform:'Education',
-    groceries:'Groceries',grocery:'Groceries',vegetable:'Groceries',vegetables:'Groceries',fruit:'Groceries',fruits:'Groceries',milk:'Groceries',bread:'Groceries',rice:'Groceries',dal:'Groceries',pulses:'Groceries',supermarket:'Groceries',kirana:'Groceries',
+    groceries:'Groceries',grocery:'Groceries',vegetable:'Groceries',vegetables:'Groceries',fruit:'Groceries',fruits:'Groceries',milk:'Groceries',bread:'Groceries',rice:'Groceries',dal:'Groceries',pulses:'Groceries',supermarket:'Groceries',kirana:'Groceries',egg:'Groceries',eggs:'Groceries',sabzi:'Groceries',
     other:'Other'
   };
+
+  /*
+     Words that are PURE category labels (i.e. the user said them just to
+     specify the category, not as part of the expense name).
+     These are excluded from the name; every other keyword is kept.
+  */
+  const PURE_CAT_WORDS=new Set([
+    'food','transport','shopping','medical','utilities','utility',
+    'education','groceries','grocery','other'
+  ]);
 
   /* ---- Month name → 0-based index ---- */
   const MONTHS={jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,september:8,oct:9,october:9,nov:10,november:10,dec:11,december:11};
   const ORDINALS={'1st':1,'2nd':2,'3rd':3,'4th':4,'5th':5,'6th':6,'7th':7,'8th':8,'9th':9,'10th':10,'11th':11,'12th':12,'13th':13,'14th':14,'15th':15,'16th':16,'17th':17,'18th':18,'19th':19,'20th':20,'21st':21,'22nd':22,'23rd':23,'24th':24,'25th':25,'26th':26,'27th':27,'28th':28,'29th':29,'30th':30,'31st':31};
 
-  /* ---- Normalize: lowercase, remove commas ---- */
+  /* ---- Normalize ---- */
   const norm=text.toLowerCase().replace(/,/g,'');
   const words=norm.split(/\s+/);
 
   /* ---- Parse date from words ---- */
   function parseDate(){
     const now=new Date();
-    // Patterns: "10 april", "10th april", "april 10", "april 10th", "10 apr 2024"
     for(let i=0;i<words.length;i++){
       const w=words[i];
       const wNext=words[i+1]||'';
-      const wPrev=words[i-1]||'';
 
       // day (number or ordinal) followed by month name
       const dayNum=ORDINALS[w]||parseInt(w);
       if(!isNaN(dayNum)&&dayNum>=1&&dayNum<=31&&MONTHS[wNext]!==undefined){
         let yr=now.getFullYear();
         const mon=MONTHS[wNext];
-        // if that date is in the future, use previous year
         const candidate=new Date(yr,mon,dayNum);
         if(candidate>now) yr--;
-        // check for explicit year after month
         const afterMonth=words[i+2];
         if(afterMonth&&/^\d{4}$/.test(afterMonth)) yr=parseInt(afterMonth);
         return {date:fmtDate(yr,mon,dayNum),matchedWords:[w,wNext,afterMonth&&/^\d{4}$/.test(afterMonth)?afterMonth:null].filter(Boolean)};
@@ -528,33 +538,56 @@ function parseVoice(text){
   const matchedDateWords=new Set(dateResult?dateResult.matchedWords.map(x=>x.toLowerCase()):[]);
 
   /* ---- Parse amount, category, name from remaining words ---- */
-  let amount=0,cat='Other';
+  let amount=0, cat='Other';
   const nameW=[];
+  // Track if we've already detected a category via an explicit pure-cat word
+  let catDetectedByPureWord=false;
 
   words.forEach(w=>{
     if(matchedDateWords.has(w)) return; // skip date words
-    const n=parseFloat(w.replace(/[^0-9.]/g,''));
-    if(!isNaN(n)&&n>0&&w.replace(/[^0-9.]/g,'')===w.replace(/[^0-9.]/g,'')&&n<1000000){
+
+    // Is it a number?
+    const numOnly=w.replace(/[^0-9.]/g,'');
+    const n=parseFloat(numOnly);
+    if(!isNaN(n)&&n>0&&numOnly===w&&n<1000000){
       if(amount===0) amount=n; // take first valid number as amount
-    } else if(CW[w]){
-      cat=CW[w];
-    } else if(w.length>0&&!/^\d+(?:st|nd|rd|th)?$/.test(w)){
+      return; // numbers never go into the name
+    }
+
+    // Is it a pure category label? (e.g. user said "food", "groceries", "transport")
+    if(PURE_CAT_WORDS.has(w)){
+      if(!catDetectedByPureWord){cat=CW[w];catDetectedByPureWord=true;}
+      return; // pure cat words are excluded from name
+    }
+
+    // Is it a category keyword that also describes the item? (e.g. "milk", "lunch", "rickshaw")
+    // → Keep in name AND use to infer category (if not already set by a pure word)
+    if(CW[w]){
+      if(!catDetectedByPureWord) cat=CW[w];
+      nameW.push(w); // ✅ THE FIX: still add to name
+      return;
+    }
+
+    // Regular word — add to name
+    if(w.length>0&&!/^\d+(?:st|nd|rd|th)?$/.test(w)){
       nameW.push(w);
     }
   });
 
-  const name=nameW.join(' ').trim()||'Voice Expense';
+  const name=nameW.join(' ').trim();
+  // Use original transcript words for capitalisation (looks nicer than all-lowercase)
+  const nameProper=name.charAt(0).toUpperCase()+name.slice(1)||text;
   const finalDate=dateResult?dateResult.date:today();
 
   if(amount>0){
-    document.getElementById('exp-name').value=name.charAt(0).toUpperCase()+name.slice(1);
+    document.getElementById('exp-name').value=nameProper;
     document.getElementById('exp-amount').value=amount;
     document.getElementById('exp-cat').value=cat;
     document.getElementById('exp-date').value=finalDate;
     const dateLabel=dateResult?` on ${formatDate(finalDate)}`:'';
-    voiceFeedback.textContent=`✅ "${name}" ${amount} (${cat})${dateLabel} — click Add`;
+    voiceFeedback.textContent=`✅ "${nameProper}" ₹${amount} (${cat})${dateLabel} — click Add`;
   }else{
-    voiceFeedback.textContent='⚠️ Amount not detected. Try: "Lunch 250 food" or "Fees 500 education 10 April"';
+    voiceFeedback.textContent='⚠️ Amount not detected. Try: "Milk 50" or "Lunch 250 food" or "Fees 500 education 10 April"';
   }
 }
 
