@@ -587,6 +587,9 @@
 
 <div id="toast"></div>
 
+<!-- Chart.js UMD bundle - fully self-contained, no sub-dependency issues -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
 <!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -598,7 +601,6 @@ import {
   getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc,
   query, where, orderBy, onSnapshot, setDoc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import Chart from "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/auto/auto.js";
 
 // ── Firebase Config ──────────────────────────────────────────
 const firebaseConfig = {
