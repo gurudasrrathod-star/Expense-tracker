@@ -434,11 +434,7 @@
 
     <!-- Login -->
     <div id="form-login">
-      <label class="pin-field-label">Email</label>
-      <div class="pin-input-wrap" style="margin-bottom:14px">
-        <input type="email" id="login-email" placeholder="you@email.com" autocomplete="email" style="letter-spacing:normal;text-align:left"/>
-      </div>
-      <label class="pin-field-label">PIN (4 or 6 digits)</label>
+      <label class="pin-field-label">Enter your PIN</label>
       <div class="pin-dots" id="login-dots"></div>
       <div class="pin-numpad" id="login-numpad"></div>
       <div class="pin-info">Max 6 digits. <span onclick="clearPin('login')">Clear</span></div>
@@ -450,10 +446,6 @@
 
     <!-- Register -->
     <div id="form-register" style="display:none">
-      <label class="pin-field-label">Email</label>
-      <div class="pin-input-wrap" style="margin-bottom:14px">
-        <input type="email" id="reg-email" placeholder="you@email.com" autocomplete="email" style="letter-spacing:normal;text-align:left"/>
-      </div>
       <label class="pin-field-label">Choose PIN (4 or 6 digits)</label>
       <div class="pin-dots" id="reg-dots"></div>
       <div class="pin-numpad" id="reg-numpad"></div>
@@ -594,7 +586,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  getAuth, signInAnonymously,
   signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, browserSessionPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
@@ -686,46 +678,71 @@ window.switchTab = function(tab) {
   document.getElementById('pin-err').textContent = '';
 };
 
-// ── PIN → Firebase Password conversion ───────────────────────
-function pinToPassword(pin) { return `PIN_${pin}_ExpenseTracker_secure`; }
+// ── PIN hashing helper ────────────────────────────────────────
+async function hashPin(pin) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin + '_ExpenseTracker'));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
 
 // ── Auth ──────────────────────────────────────────────────────
+// PIN-only login: look up stored UID in localStorage, verify PIN hash from Firestore
 window.doLogin = async function() {
-  const email = document.getElementById('login-email').value.trim();
-  const pin   = pinState['login'];
-  const err   = document.getElementById('pin-err');
+  const pin = pinState['login'];
+  const err = document.getElementById('pin-err');
   err.textContent = '';
-  if (!email) { err.textContent = 'Please enter your email.'; return; }
   if (pin.length < PIN_MIN) { err.textContent = `Enter at least ${PIN_MIN} digits.`; return; }
+
+  const storedUid = localStorage.getItem('expense_tracker_uid');
+  if (!storedUid) { err.textContent = 'No account found on this device. Please create one first.'; return; }
 
   const remember = document.getElementById('remember-me').checked;
   try {
     await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
-    await signInWithEmailAndPassword(auth, email, pinToPassword(pin));
+    // Sign in anonymously to get Firebase auth (UID will match stored one if persistence is set)
+    const userCred = await signInAnonymously(auth);
+    // Verify PIN against Firestore
+    const userDoc = await getDoc(doc(db, 'users', storedUid));
+    if (!userDoc.exists()) { err.textContent = 'Account not found. Please create a new account.'; await signOut(auth); return; }
+    const pinHash = await hashPin(pin);
+    if (userDoc.data().pinHash !== pinHash) {
+      err.textContent = 'Wrong PIN. Please try again.';
+      await signOut(auth);
+      return;
+    }
+    // PIN correct — auth state observer will handle the rest
   } catch(e) {
-    err.textContent = 'Invalid email or PIN. Please try again.';
+    err.textContent = 'Login failed. Please try again.';
+    console.error(e);
   }
 };
 
 window.doRegister = async function() {
-  const email = document.getElementById('reg-email').value.trim();
-  const pin   = pinState['reg'];
-  const err   = document.getElementById('pin-err');
+  const pin = pinState['reg'];
+  const err = document.getElementById('pin-err');
   err.textContent = '';
-  if (!email) { err.textContent = 'Please enter your email.'; return; }
   if (pin.length < PIN_MIN) { err.textContent = `PIN must be ${PIN_MIN}–${PIN_MAX} digits.`; return; }
 
+  const existingUid = localStorage.getItem('expense_tracker_uid');
+  if (existingUid) { err.textContent = 'An account already exists on this device. Please login.'; return; }
+
   try {
-    await createUserWithEmailAndPassword(auth, email, pinToPassword(pin));
+    const remember = document.getElementById('remember-me').checked;
+    await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
+    const userCred = await signInAnonymously(auth);
+    const uid = userCred.user.uid;
+    const pinHash = await hashPin(pin);
+    await setDoc(doc(db, 'users', uid), { pinHash, createdAt: Date.now() }, { merge: true });
+    localStorage.setItem('expense_tracker_uid', uid);
+    // Auth state observer will show app
   } catch(e) {
-    if (e.code === 'auth/email-already-in-use') err.textContent = 'Account already exists. Please login.';
-    else if (e.code === 'auth/invalid-email') err.textContent = 'Invalid email address.';
-    else err.textContent = e.message;
+    err.textContent = 'Registration failed: ' + e.message;
+    console.error(e);
   }
 };
 
 window.doLogout = async function() {
   if (unsubscribeExpenses) unsubscribeExpenses();
+  localStorage.removeItem('expense_tracker_uid');
   await signOut(auth);
 };
 
@@ -733,10 +750,12 @@ window.doLogout = async function() {
 onAuthStateChanged(auth, async (user) => {
   document.getElementById('loading-screen').style.display = 'none';
   if (user) {
+    // Store UID for PIN-only login on return visits
+    localStorage.setItem('expense_tracker_uid', user.uid);
     currentUser = user;
     document.getElementById('pin-screen').style.display = 'none';
     document.getElementById('app').classList.add('visible');
-    document.getElementById('user-email-badge').textContent = user.email;
+    document.getElementById('user-email-badge').textContent = 'PIN Protected';
     document.getElementById('exp-date').valueAsDate = new Date();
     initCharts();
     buildFilters();
@@ -1019,16 +1038,14 @@ function showToast(msg, type='') {
   1. FIREBASE CONSOLE  →  https://console.firebase.google.com
      Project: expense-tracker-c8e5d
 
-  2. REPLACE the firebaseConfig values above with your real keys:
-     Go to Project Settings → General → Your apps → Web app config
+  2. ENABLE Firebase Auth:
+     Authentication → Sign-in method → Anonymous → Enable
+     (Email/Password is no longer needed)
 
-  3. ENABLE Firebase Auth:
-     Authentication → Sign-in method → Email/Password → Enable
-
-  4. CREATE Firestore Database:
+  3. CREATE Firestore Database:
      Firestore Database → Create database (start in production mode)
 
-  5. ADD these Firestore Security Rules:
+  4. ADD these Firestore Security Rules:
      (Firestore → Rules → Replace all → Publish)
 
      rules_version = '2';
@@ -1050,7 +1067,7 @@ function showToast(msg, type='') {
        }
      }
 
-  6. CREATE Firestore Composite Index (needed for the query):
+  5. CREATE Firestore Composite Index (needed for the query):
      Firestore → Indexes → Composite → Add index:
        Collection: expenses
        Fields:
@@ -1058,10 +1075,14 @@ function showToast(msg, type='') {
          date       Descending
      (Or the app will show a link in console to auto-create it.)
 
-  7. DEPLOY to GitHub Pages:
+  6. DEPLOY to GitHub Pages:
      Just replace index.html in your repo and push.
      Your link stays the same:
      https://gurudasrrathod-star.github.io/Expense-tracker/
+
+  NOTE: PIN-only auth uses Firebase Anonymous Auth.
+  The account is tied to this device/browser via localStorage.
+  If user clears localStorage, they will need to create a new account.
 
 ═══════════════════════════════════════════════════════════════════
 -->
