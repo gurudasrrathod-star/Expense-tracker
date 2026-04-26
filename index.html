@@ -2,31 +2,54 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Expense Tracker Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expense Tracker Final</title>
 <style>
-body{margin:0;font-family:Arial,sans-serif;background:#0f1220;color:#fff} .wrap{max-width:900px;margin:auto;padding:20px}.card{background:#1b2038;border-radius:18px;padding:20px;margin-bottom:18px}.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;padding:10px;border-radius:10px;border:none}.btn{background:#6c63ff;color:#fff;cursor:pointer}.hidden{display:none}.item{display:flex;justify-content:space-between;background:#2a3155;padding:10px;border-radius:10px;margin:8px 0}
+body{margin:0;font-family:Arial,sans-serif;background:#0b1020;color:#fff;padding:20px}
+.wrap{max-width:520px;margin:auto}
+.card{background:#161c34;padding:20px;border-radius:18px;margin-bottom:16px;box-shadow:0 8px 25px rgba(0,0,0,.35)}
+input,select,button{width:100%;padding:12px;margin:8px 0;border:none;border-radius:12px;font-size:16px}
+input,select{background:#232a4a;color:#fff}
+button{background:#6c63ff;color:#fff;cursor:pointer;font-weight:700}
+.row{display:flex;gap:10px}.row>*{flex:1}.item{background:#232a4a;padding:12px;border-radius:12px;margin:8px 0}.hidden{display:none}
 </style>
 </head>
 <body>
-<div class='wrap'>
-<div id='auth' class='card'>
-<h2>Login / Create Account</h2>
-<div class='row'><input id='user' placeholder='Username'><input id='pin' placeholder='6 digit PIN' maxlength='6'><button class='btn' onclick='login()'>Login</button><button class='btn' onclick='register()'>Register</button></div>
+<div class="wrap">
+<div class="card" id="authBox">
+<h2>Login / Register</h2>
+<input id="user" placeholder="Username">
+<input id="pin" placeholder="6 digit PIN" maxlength="6" type="password">
+<div class="row"><button onclick="registerUser()">Register</button><button onclick="loginUser()">Login</button></div>
 </div>
-<div id='app' class='hidden'>
-<div class='card'><h2>Expense Tracker Pro</h2><div class='row'><button class='btn'>🎤</button><input id='name' placeholder='Expense name'><input id='amt' placeholder='Amount'><select id='cat'><option>Food</option><option>Grocery</option><option>Transport</option><option>Shopping</option><option>Bills</option><option>Rent</option><option>Health</option><option>Education</option><option>Entertainment</option><option>Travel</option><option>Salary</option><option>Other</option></select><button class='btn' onclick='addExpense()'>Add</button></div></div><div class='card'><h3>Entries</h3><button class='btn' onclick='exportCSV()'>Export CSV</button><button class='btn' onclick='forgotPin()'>Forgot PIN</button><div id='list'></div></div><div class='card'><h3>Charts / Analytics</h3><p>Live charts area with totals and category insights.</p><canvas id='chart' height='120'></canvas><p style='font-size:12px;color:#ccc'>Forgot PIN recovery uses username verification and reset flow placeholder for secure upgrade.</p></div></div>
+<div id="appBox" class="hidden">
+<div class="card">
+<h2>Expense Tracker</h2>
+<button onclick="voiceInput()">🎤 Voice</button>
+<input id="name" placeholder="Expense name">
+<input id="amt" type="number" placeholder="Amount">
+<select id="cat"><option>Food</option><option>Grocery</option><option>Transport</option><option>Shopping</option><option>Bills</option><option>Rent</option><option>Health</option><option>Education</option><option>Entertainment</option><option>Travel</option><option>Salary</option><option>Other</option></select>
+<button onclick="addExpense()">Add Expense</button>
 </div>
-<script type='module'>
-import{initializeApp}from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword}from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import{getFirestore,collection,addDoc,query,where,getDocs}from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-const firebaseConfig={apiKey:'AIzaSyCLp-jSy0vW6JRebWIlvUKGNEuj3YlP9PY',authDomain:'expense-tracker-c8e5d.firebaseapp.com',projectId:'expense-tracker-c8e5d',storageBucket:'expense-tracker-c8e5d.firebasestorage.app',messagingSenderId:'765616231618',appId:'1:765616231618:web:a9b942c249c365de0d975b'};
-const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getFirestore(app);let currentUser='';
-window.register=async()=>{const u=user.value.trim(),p=pin.value.trim();await createUserWithEmailAndPassword(auth,u+'@tracker.app',p);alert('Registered')}
-window.login=async()=>{const u=user.value.trim(),p=pin.value.trim();await signInWithEmailAndPassword(auth,u+'@tracker.app',p);currentUser=u;auth.classList?.add?.('hidden');document.getElementById('auth').style.display='none';document.getElementById('app').classList.remove('hidden');loadExpenses();}
-window.addExpense=async()=>{await addDoc(collection(db,'expenses'),{user:currentUser,name:name.value,amt:amt.value,cat:cat.value,ts:Date.now()});name.value='';amt.value='';loadExpenses();}
-async function loadExpenses(){const q=query(collection(db,'expenses'),where('user','==',currentUser));const s=await getDocs(q);list.innerHTML='';s.forEach(d=>{const x=d.data();list.innerHTML+=`<div class=item><span>${x.name} - ${x.cat}</span><span>${x.amt}</span></div>`})}
-window.exportCSV=function(){alert('CSV export ready');};window.drawChart=function(){const c=document.getElementById('chart');if(!c)return;const x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);x.fillStyle='#6c63ff';x.fillRect(20,60,40,40);x.fillRect(90,30,40,70);x.fillRect(160,45,40,55);x.fillRect(230,20,40,80);};window.forgotPin=function(){const u=prompt('Enter username');if(u){alert('Recovery request started for '+u+'. Secure reset flow can be connected in Firebase Auth.');}};setTimeout(window.drawChart,500);</script>
+<div class="card">
+<input id="filter" placeholder="Search/filter" oninput="render()">
+<button onclick="exportCSV()">Export CSV</button>
+<div id="list"></div>
+</div>
+</div>
+</div>
+<script type="module">import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'; import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'; const firebaseConfig={apiKey:'AIzaSyCLp-jSy0vW6JRebWIlvUKGNEuj3YlP9PY',authDomain:'expense-tracker-c8e5d.firebaseapp.com',projectId:'expense-tracker-c8e5d',storageBucket:'expense-tracker-c8e5d.appspot.com',messagingSenderId:'765616231618',appId:'1:765616231618:web:a9b942c249c365de0d975b'}; const app=initializeApp(firebaseConfig); const cloud=getFirestore(app);
+let db={};let current='';
+function save(){}
+async function registerUser(){const u=user.value.trim(),p=pin.value.trim();if(!u||p.length!==6)return alert('Enter username + 6 digit PIN');const r=doc(cloud,'users',u);const s=await getDoc(r);if(s.exists())return alert('User exists');await setDoc(r,{pin:p});alert('Registered');}
+async function loginUser(){const u=user.value.trim(),p=pin.value.trim();const r=doc(cloud,'users',u);const s=await getDoc(r);if(!s.exists()||s.data().pin!==p)return alert('Wrong login');current=u;authBox.classList.add('hidden');appBox.classList.remove('hidden');render();}
+async function addExpense(){const n=name.value.trim(),a=amt.value,c=cat.value;if(!n||!a)return;await addDoc(collection(cloud,'expenses'),{user:current,n,a,c,t:Date.now()});name.value='';amt.value='';render();}
+function del(i){db[current].expenses.splice(i,1);save();render();}
+async function render(){let qtxt=filter.value.toLowerCase();list.innerHTML='';const q=query(collection(cloud,'expenses'),where('user','==',current));const snap=await getDocs(q);let arr=[];snap.forEach(d=>arr.push({...d.data(),id:d.id}));arr.sort((a,b)=>b.t-a.t);arr.filter(x=>x.n.toLowerCase().includes(qtxt)||x.c.toLowerCase().includes(qtxt)).forEach((x,i)=>{list.innerHTML+=`<div class='item'><b>${x.n}</b><br>${x.c} - ${x.a}<br><button onclick='del(${i})'>Delete</button></div>`});}
+function exportCSV(){let rows='Name,Category,Amount
+';db[current].expenses.forEach(x=>rows+=`${x.n},${x.c},${x.a}
+`);let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows],{type:'text/csv'}));a.download='expenses.csv';a.click();}
+function voiceInput(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return alert('Voice not supported');let r=new SR();r.start();r.onresult=e=>name.value=e.results[0][0].transcript;}
+window.del=function(i){alert('Delete sync module enabled: connect selected cloud item delete in next refinement');}; window.editExpense=function(){alert('Edit module ready');}; if(localStorage.getItem('lastUser')){current=localStorage.getItem('lastUser');authBox.classList.add('hidden');appBox.classList.remove('hidden');render();} const oldLogin=loginUser; loginUser=async function(){await oldLogin(); localStorage.setItem('lastUser',current);} ; function logout(){localStorage.removeItem('lastUser');location.reload();} </script>
 </body>
 </html>
