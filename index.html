@@ -548,12 +548,12 @@ function resetForgotFlow(){
 
 /* ── Entry type toggles ── */
 var currentEntryType='expense';
-function setEntryType(type, skipCatReset){
+function setEntryType(type){
   currentEntryType=type;
   document.getElementById('type-expense-btn').className='type-btn expense-btn'+(type==='expense'?' active':'');
   document.getElementById('type-income-btn').className='type-btn income-btn'+(type==='income'?' active':'');
   document.getElementById('add-btn').textContent=type==='income'?'Add Income':'Add Expense';
-  if(!skipCatReset){document.getElementById('exp-cat').value=type==='income'?'Salary':'Food';}
+  if(type==='income'){document.getElementById('exp-cat').value='Salary';}
 }
 var currentEditType='expense';
 function setEditType(type){
@@ -566,7 +566,7 @@ function setEditType(type){
 /* ── Shared utils ── */
 function showMsg(id,msg){var el=document.getElementById(id);if(!el)return;el.textContent=msg;el.style.display='block';}
 function todayStr(){return new Date().toISOString().slice(0,10);}
-function fmtAmt(n){return (+n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtAmt(n){return (+n).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2});}
 function fmtDate(iso){return new Date(iso+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
@@ -583,150 +583,6 @@ function forgotStep1(){console.warn('Firebase not loaded yet');}
 function forgotStep2(){console.warn('Firebase not loaded yet');}
 function openEdit(id){console.warn('Firebase not loaded yet');}
 function deleteExpense(id){console.warn('Firebase not loaded yet');}
-
-
-/* ══════════════════════════════════
-   VOICE — Script 1 scope so
-   setEntryType() is directly callable
-   ══════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', function(){
-
-  var micBtn = document.getElementById('mic-btn');
-  var vf = document.getElementById('voice-feedback');
-  if(!micBtn || !vf) return;
-
-  var WORD_CAT = {
-    // Food
-    lunch:'Food', dinner:'Food', tea:'Food', breakfast:'Food',
-    snacks:'Food', snack:'Food', food:'Food', chai:'Food', coffee:'Food',
-    // Grocery
-    milk:'Grocery', bread:'Grocery', vegetables:'Grocery', vegetable:'Grocery',
-    fruits:'Grocery', fruit:'Grocery', rice:'Grocery', eggs:'Grocery', egg:'Grocery',
-    grocery:'Grocery', groceries:'Grocery', sabzi:'Grocery', dal:'Grocery',
-    // Transport
-    car:'Transport', rickshaw:'Transport', rixa:'Transport', taxi:'Transport',
-    bus:'Transport', petrol:'Transport', train:'Transport', auto:'Transport',
-    cab:'Transport', fuel:'Transport', metro:'Transport', transport:'Transport',
-    // Shopping
-    clothes:'Shopping', shoes:'Shopping', bag:'Shopping', watch:'Shopping',
-    shopping:'Shopping', dress:'Shopping', shirt:'Shopping',
-    // Utilities
-    electricity:'Utilities', gas:'Utilities', ac:'Utilities', internet:'Utilities',
-    wifi:'Utilities', mobile:'Utilities', bill:'Utilities', bills:'Utilities',
-    utility:'Utilities', utilities:'Utilities',
-    // Rent
-    rent:'Rent', flat:'Rent', apartment:'Rent',
-    // Health
-    medicine:'Health', insurance:'Health', hospital:'Health', doctor:'Health',
-    clinic:'Health', health:'Health', pharmacy:'Health', gym:'Health',
-    // Education
-    school:'Education', fees:'Education', tuition:'Education', tution:'Education',
-    books:'Education', book:'Education', education:'Education', college:'Education',
-    // Entertainment
-    movie:'Entertainment', movies:'Entertainment', game:'Entertainment',
-    games:'Entertainment', fun:'Entertainment', park:'Entertainment',
-    entertainment:'Entertainment', netflix:'Entertainment',
-    // Travel
-    flight:'Travel', trip:'Travel', hotel:'Travel', travel:'Travel',
-    vacation:'Travel', holiday:'Travel',
-    // Salary
-    salary:'Salary', income:'Salary', pay:'Salary', bonus:'Salary',
-    stipend:'Salary', freelance:'Salary'
-  };
-
-  var PHRASES = [
-    ['out of station','Travel'], ['train ticket','Travel'],
-    ['game zone','Entertainment'], ['fun park','Entertainment'],
-    ['school bus','Education'], ['tuition fee','Education'],
-    ['tution fee','Education'], ['school fees','Education'],
-    ['house rent','Rent'], ['mobile bill','Utilities']
-  ];
-
-  function detectCat(norm) {
-    for(var i=0;i<PHRASES.length;i++){
-      if(norm.indexOf(PHRASES[i][0]) !== -1) return PHRASES[i][1];
-    }
-    var words = norm.split(/\s+/);
-    for(var j=0;j<words.length;j++){
-      if(WORD_CAT[words[j]]) return WORD_CAT[words[j]];
-    }
-    return 'Other';
-  }
-
-  function applyVoice(text) {
-    var norm = text.toLowerCase().replace(/[,।]/g,'').trim();
-    var words = norm.split(/\s+/).filter(Boolean);
-
-    // Detect category
-    var cat = detectCat(norm);
-    var isIncome = (cat === 'Salary');
-
-    // Detect amount
-    var amount = 0;
-    for(var i=0;i<words.length;i++){
-      var n = parseFloat(words[i]);
-      if(!isNaN(n) && n>0 && /^\d+(\.\d+)?$/.test(words[i]) && n<10000000){
-        amount = n; break;
-      }
-    }
-
-    // Build name: remove amount and known keywords
-    var stopSet = {};
-    Object.keys(WORD_CAT).forEach(function(k){stopSet[k]=true;});
-    if(amount) stopSet[String(amount)] = true;
-    var nameWords = words.filter(function(w){
-      return w.length>0 && !stopSet[w] && !/^\d+(\.\d+)?$/.test(w) && !/^\d+(st|nd|rd|th)$/.test(w);
-    });
-    var name = nameWords.join(' ').trim();
-    if(name) name = name.charAt(0).toUpperCase() + name.slice(1);
-    else name = text;
-
-    // CRITICAL ORDER:
-    // 1. Set type (with skipCatReset=true so it doesn't wipe category)
-    setEntryType(isIncome ? 'income' : 'expense', true);
-    // 2. Set category AFTER type
-    document.getElementById('exp-cat').value = cat;
-    // 3. Fill other fields
-    if(amount) document.getElementById('exp-amount').value = amount;
-    document.getElementById('exp-name').value = name;
-    document.getElementById('exp-date').value = new Date().toISOString().slice(0,10);
-
-    // Feedback
-    if(amount){
-      vf.textContent = '✅ ' + name + ' | ' + cat + ' | ' + amount + ' — click Add';
-    } else {
-      vf.textContent = '📂 ' + cat + ' detected. Say amount too — e.g. "Milk 50"';
-    }
-  }
-
-  if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
-    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    var rec = new SR();
-    rec.lang = 'en-IN';
-    rec.interimResults = false;
-    rec.continuous = false;
-
-    rec.onstart = function(){ micBtn.classList.add('listening'); vf.textContent = '🔴 Listening…'; };
-    rec.onend   = function(){ micBtn.classList.remove('listening'); micBtn.textContent = '🎤'; };
-    rec.onerror = function(ev){ vf.textContent = '❌ ' + ev.error; micBtn.classList.remove('listening'); micBtn.textContent = '🎤'; };
-    rec.onresult = function(ev){
-      var t = ev.results[0][0].transcript.trim();
-      vf.textContent = '👂 "' + t + '"';
-      applyVoice(t);
-    };
-
-    micBtn.addEventListener('click', function(){
-      if(micBtn.classList.contains('listening')){ rec.stop(); }
-      else { try{ rec.start(); micBtn.textContent='🔴'; } catch(e){ vf.textContent='❌ '+e.message; } }
-    });
-
-  } else {
-    micBtn.style.opacity = '.4';
-    micBtn.style.cursor = 'not-allowed';
-    vf.textContent = '⚠️ Voice not supported. Use Chrome on Android/desktop.';
-  }
-
-});
 
 /* ── Init numpad on page load ── */
 document.addEventListener('DOMContentLoaded',function(){initMainNumpad();});
@@ -1079,6 +935,100 @@ document.getElementById('export-csv').addEventListener('click',()=>{
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='expenses_'+todayStr()+'.csv';a.click();
 });
 
-/* Voice handled in Script 1 */</script>
+/* ── Voice ── */
+const micBtn=document.getElementById('mic-btn'),vf=document.getElementById('voice-feedback');
+if('webkitSpeechRecognition'in window||'SpeechRecognition'in window){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition,rec=new SR();
+  rec.lang='en-IN';rec.interimResults=false;
+  rec.onstart=()=>{micBtn.classList.add('listening');vf.textContent='🔴 Listening…';};
+  rec.onend=()=>{micBtn.classList.remove('listening');micBtn.textContent='🎤';};
+  rec.onresult=ev=>{const t=ev.results[0][0].transcript.trim();vf.textContent='✅ Heard: '+t;parseVoice(t);};
+  rec.onerror=ev=>{vf.textContent='❌ '+ev.error;micBtn.classList.remove('listening');};
+  micBtn.addEventListener('click',()=>{if(micBtn.classList.contains('listening'))rec.stop();else{rec.start();micBtn.textContent='🔴';}});
+}else{micBtn.style.opacity='.4';micBtn.style.cursor='not-allowed';vf.textContent='Voice not supported in this browser';}
+
+function parseVoice(text){
+  var WORD_CAT={
+    lunch:'Food',dinner:'Food',tea:'Food',breakfast:'Food',snacks:'Food',snack:'Food',
+    food:'Food',chai:'Food',coffee:'Food',biryani:'Food',
+    milk:'Grocery',bread:'Grocery',vegetables:'Grocery',vegetable:'Grocery',
+    fruits:'Grocery',fruit:'Grocery',rice:'Grocery',eggs:'Grocery',egg:'Grocery',
+    grocery:'Grocery',groceries:'Grocery',sabzi:'Grocery',dal:'Grocery',kirana:'Grocery',
+    car:'Transport',rickshaw:'Transport',rixa:'Transport',taxi:'Transport',
+    bus:'Transport',petrol:'Transport',train:'Transport',auto:'Transport',
+    cab:'Transport',fuel:'Transport',metro:'Transport',transport:'Transport',
+    clothes:'Shopping',shoes:'Shopping',bag:'Shopping',watch:'Shopping',
+    shopping:'Shopping',dress:'Shopping',shirt:'Shopping',
+    electricity:'Utilities',gas:'Utilities',ac:'Utilities',internet:'Utilities',
+    wifi:'Utilities',mobile:'Utilities',bill:'Utilities',bills:'Utilities',
+    utility:'Utilities',utilities:'Utilities',
+    rent:'Rent',flat:'Rent',apartment:'Rent',
+    medicine:'Health',insurance:'Health',hospital:'Health',doctor:'Health',
+    clinic:'Health',health:'Health',pharmacy:'Health',gym:'Health',
+    school:'Education',fees:'Education',tuition:'Education',tution:'Education',
+    books:'Education',book:'Education',education:'Education',college:'Education',
+    movie:'Entertainment',movies:'Entertainment',game:'Entertainment',
+    games:'Entertainment',entertainment:'Entertainment',netflix:'Entertainment',
+    flight:'Travel',trip:'Travel',hotel:'Travel',travel:'Travel',
+    vacation:'Travel',holiday:'Travel',
+    salary:'Salary',income:'Salary',pay:'Salary',bonus:'Salary',
+    stipend:'Salary',freelance:'Salary'
+  };
+  var PHRASES=[
+    ['out of station','Travel'],['train ticket','Travel'],
+    ['game zone','Entertainment'],['fun park','Entertainment'],
+    ['school bus','Education'],['tuition fee','Education'],
+    ['tution fee','Education'],['school fees','Education'],
+    ['house rent','Rent'],['mobile bill','Utilities']
+  ];
+
+  var norm=text.toLowerCase().replace(/[,।]/g,'').trim();
+  var words=norm.split(/\s+/).filter(Boolean);
+
+  /* 1. Detect category */
+  var cat='Other';
+  for(var pi=0;pi<PHRASES.length;pi++){
+    if(norm.indexOf(PHRASES[pi][0])!==-1){cat=PHRASES[pi][1];break;}
+  }
+  if(cat==='Other'){
+    for(var wi=0;wi<words.length;wi++){
+      if(WORD_CAT[words[wi]]){cat=WORD_CAT[words[wi]];break;}
+    }
+  }
+
+  /* 2. Detect amount */
+  var amount=0;
+  for(var ai=0;ai<words.length;ai++){
+    var n=parseFloat(words[ai]);
+    if(!isNaN(n)&&n>0&&/^\d+(\.\d+)?$/.test(words[ai])&&n<10000000){amount=n;break;}
+  }
+
+  /* 3. Build name (strip keywords + number) */
+  var stopSet={};
+  Object.keys(WORD_CAT).forEach(function(k){stopSet[k]=true;});
+  if(amount)stopSet[String(amount)]=true;
+  var kept=words.filter(function(w){
+    return w.length>0&&!stopSet[w]&&!/^\d+(\.\d+)?$/.test(w)&&!/^\d+(st|nd|rd|th)$/.test(w);
+  });
+  var rawName=kept.join(' ').trim();
+  var nameP=rawName?rawName.charAt(0).toUpperCase()+rawName.slice(1):text;
+
+  var isIncome=(cat==='Salary');
+
+  /* 4. Set type (category preserved for expense, Salary auto-set for income) */
+  setEntryType(isIncome?'income':'expense');
+  if(!isIncome){document.getElementById('exp-cat').value=cat;}
+
+  /* 5. Fill remaining fields */
+  if(amount){
+    document.getElementById('exp-name').value=nameP;
+    document.getElementById('exp-amount').value=amount;
+    document.getElementById('exp-date').value=todayStr();
+    vf.textContent='✅ '+nameP+' → '+cat+' | '+amount+' — click Add';
+  }else{
+    vf.textContent='📂 Category set to '+cat+'. Say amount too — e.g. "Milk 50"';
+  }
+}
+</script>
 </body>
 </html>
