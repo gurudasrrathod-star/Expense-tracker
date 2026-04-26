@@ -566,7 +566,7 @@ function setEditType(type){
 /* ── Shared utils ── */
 function showMsg(id,msg){var el=document.getElementById(id);if(!el)return;el.textContent=msg;el.style.display='block';}
 function todayStr(){return new Date().toISOString().slice(0,10);}
-function fmtAmt(n){return (+n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtAmt(n){return (+n).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2});}
 function fmtDate(iso){return new Date(iso+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
@@ -874,7 +874,7 @@ function render(){
       <div class="exp-icon ${catCls[e.category]||'cat-other'}">${catEmoji[e.category]||'📦'}</div>
       <div class="exp-info"><div class="exp-name">${esc(e.name)}</div>
         <div class="exp-meta">${esc(e.category)} · ${fmtDate(e.date)} · <span style="color:${inc?'var(--green)':'var(--accent2)'}">${inc?'Income':'Expense'}</span></div></div>
-      <div class="exp-amount ${inc?'is-income':'is-expense'}">${inc?'+':''}${fmtAmt(e.amount)}</div>
+      <div class="exp-amount" style="color:${inc?'var(--green)':'var(--text)'}">${inc?'+ ':' '}${fmtAmt(e.amount)}</div>
       <div class="exp-actions">
         <button class="btn-icon" onclick="openEdit('${e._id}')">✏️</button>
         <button class="btn-icon del" onclick="deleteExpense('${e._id}')">🗑</button>
@@ -948,88 +948,146 @@ if('webkitSpeechRecognition'in window||'SpeechRecognition'in window){
 }else{micBtn.style.opacity='.4';micBtn.style.cursor='not-allowed';vf.textContent='Voice not supported in this browser';}
 
 function parseVoice(text){
-  const CW={
+  /* ── Keyword → Category map (single words, checked word by word) ── */
+  const WORD_CAT={
     // Food
-    food:'Food',lunch:'Food',dinner:'Food',tea:'Food',breakfast:'Food',snacks:'Food',snack:'Food',
-    restaurant:'Food',hotel:'Food',chai:'Food',coffee:'Food',
+    lunch:'Food',dinner:'Food',tea:'Food',breakfast:'Food',snacks:'Food',snack:'Food',
+    food:'Food',restaurant:'Food',chai:'Food',coffee:'Food',biryani:'Food',pizza:'Food',
     // Grocery
-    grocery:'Grocery',groceries:'Grocery',milk:'Grocery',bread:'Grocery',vegetables:'Grocery',vegetable:'Grocery',
-    fruits:'Grocery',fruit:'Grocery',rice:'Grocery',dal:'Grocery',pulses:'Grocery',supermarket:'Grocery',
-    kirana:'Grocery',egg:'Grocery',eggs:'Grocery',sabzi:'Grocery',
+    milk:'Grocery',bread:'Grocery',vegetables:'Grocery',vegetable:'Grocery',
+    fruits:'Grocery',fruit:'Grocery',rice:'Grocery',eggs:'Grocery',egg:'Grocery',
+    grocery:'Grocery',groceries:'Grocery',sabzi:'Grocery',dal:'Grocery',kirana:'Grocery',
     // Transport
-    transport:'Transport',car:'Transport',rickshaw:'Transport',rixa:'Transport',taxi:'Transport',
-    bus:'Transport',petrol:'Transport',cab:'Transport',auto:'Transport',uber:'Transport',ola:'Transport',
-    fuel:'Transport',metro:'Transport',train:'Transport',
+    car:'Transport',rickshaw:'Transport',rixa:'Transport',taxi:'Transport',
+    bus:'Transport',petrol:'Transport',train:'Transport',auto:'Transport',
+    cab:'Transport',uber:'Transport',ola:'Transport',fuel:'Transport',metro:'Transport',
+    transport:'Transport',
     // Shopping
-    shopping:'Shopping',clothes:'Shopping',shoes:'Shopping',dress:'Shopping',shirt:'Shopping',
-    mall:'Shopping',amazon:'Shopping',flipkart:'Shopping',
+    clothes:'Shopping',shoes:'Shopping',bag:'Shopping',watch:'Shopping',
+    shopping:'Shopping',dress:'Shopping',shirt:'Shopping',mall:'Shopping',
     // Utilities
-    utilities:'Utilities',electricity:'Utilities',gas:'Utilities',ac:'Utilities',internet:'Utilities',
-    wifi:'Utilities',water:'Utilities',bill:'Utilities',bills:'Utilities',utility:'Utilities',
+    electricity:'Utilities',gas:'Utilities',ac:'Utilities',internet:'Utilities',
+    wifi:'Utilities',mobile:'Utilities',bill:'Utilities',bills:'Utilities',
+    utility:'Utilities',utilities:'Utilities',water:'Utilities',
     // Rent
-    rent:'Rent',house:'Rent',flat:'Rent',apartment:'Rent',
+    rent:'Rent',flat:'Rent',apartment:'Rent',
     // Health
-    health:'Health',medicine:'Health',insurance:'Health',hospital:'Health',doctor:'Health',
-    medical:'Health',pharmacy:'Health',clinic:'Health',gym:'Health',
+    medicine:'Health',insurance:'Health',hospital:'Health',doctor:'Health',
+    clinic:'Health',health:'Health',medical:'Health',pharmacy:'Health',gym:'Health',
     // Education
-    education:'Education',school:'Education',fees:'Education','school bus':'Education',
-    tuition:'Education',tution:'Education','tution fee':'Education','tuition fee':'Education',
-    college:'Education',course:'Education',book:'Education',books:'Education',
-    stationery:'Education',exam:'Education',training:'Education',
+    school:'Education',fees:'Education',tuition:'Education',tution:'Education',
+    books:'Education',book:'Education',education:'Education',college:'Education',
+    course:'Education',stationery:'Education',exam:'Education',
     // Entertainment
-    entertainment:'Entertainment',movie:'Entertainment',movies:'Entertainment',
-    'game zone':'Entertainment',game:'Entertainment',games:'Entertainment',
-    netflix:'Entertainment',spotify:'Entertainment',outing:'Entertainment',
+    movie:'Entertainment',movies:'Entertainment',game:'Entertainment',
+    games:'Entertainment',fun:'Entertainment',park:'Entertainment',
+    entertainment:'Entertainment',netflix:'Entertainment',outing:'Entertainment',
     // Travel
-    travel:'Travel',flight:'Travel','out of station':'Travel',hotel_travel:'Travel',trip:'Travel',
+    flight:'Travel',trip:'Travel',hotel:'Travel',travel:'Travel',
     vacation:'Travel',holiday:'Travel',
-    // Salary
-    salary:'Salary',income:'Salary',pay:'Salary',stipend:'Salary',freelance:'Salary',bonus:'Salary',
-    // Other (catch-all handled below)
-    other:'Other'
+    // Salary / Income
+    salary:'Salary',income:'Salary',pay:'Salary',bonus:'Salary',
+    stipend:'Salary',freelance:'Salary',payment:'Salary'
   };
-  const INCOME=new Set(['Salary']);
-  const MONTHS={jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,september:8,oct:9,october:9,nov:10,november:10,dec:11,december:11};
-  const ORD={'1st':1,'2nd':2,'3rd':3,'4th':4,'5th':5,'6th':6,'7th':7,'8th':8,'9th':9,'10th':10,'11th':11,'12th':12,'13th':13,'14th':14,'15th':15,'16th':16,'17th':17,'18th':18,'19th':19,'20th':20,'21st':21,'22nd':22,'23rd':23,'24th':24,'25th':25,'26th':26,'27th':27,'28th':28,'29th':29,'30th':30,'31st':31};
-  const norm=text.toLowerCase().replace(/,/g,''),words=norm.split(/\s+/);
+
+  /* ── Multi-word phrases (checked before splitting into words) ── */
+  const PHRASE_CAT=[
+    ['out of station','Travel'],
+    ['train ticket','Travel'],
+    ['game zone','Entertainment'],
+    ['fun park','Entertainment'],
+    ['school bus','Education'],
+    ['tuition fee','Education'],
+    ['tution fee','Education'],
+    ['school fees','Education'],
+    ['house rent','Rent'],
+    ['mobile bill','Utilities']
+  ];
+
+  const INCOME_CATS=new Set(['Salary']);
+
+  const norm=text.toLowerCase().replace(/[,]/g,'');
+  const words=norm.split(/\s+/).filter(Boolean);
+
+  /* ── Date parsing ── */
+  const MONTHS={jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,
+    jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,september:8,oct:9,october:9,
+    nov:10,november:10,dec:11,december:11};
+  const ORD={};
+  ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th','13th',
+   '14th','15th','16th','17th','18th','19th','20th','21st','22nd','23rd','24th','25th',
+   '26th','27th','28th','29th','30th','31st'].forEach((s,i)=>ORD[s]=i+1);
+
   function fd(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
   function parseDate(){
     const now=new Date();
     for(let i=0;i<words.length;i++){
       const w=words[i],wN=words[i+1]||'';
       const dn=ORD[w]||parseInt(w);
-      if(!isNaN(dn)&&dn>=1&&dn<=31&&MONTHS[wN]!==undefined){let yr=now.getFullYear();const mon=MONTHS[wN];if(new Date(yr,mon,dn)>now)yr--;const a=words[i+2];if(a&&/^\d{4}$/.test(a))yr=parseInt(a);return{date:fd(yr,mon,dn),mw:[w,wN,a&&/^\d{4}$/.test(a)?a:null].filter(Boolean)};}
-      if(MONTHS[w]!==undefined){const d2=ORD[wN]||parseInt(wN);if(!isNaN(d2)&&d2>=1&&d2<=31){let yr=now.getFullYear();const mon=MONTHS[w];if(new Date(yr,mon,d2)>now)yr--;const a=words[i+2];if(a&&/^\d{4}$/.test(a))yr=parseInt(a);return{date:fd(yr,mon,d2),mw:[w,wN,a&&/^\d{4}$/.test(a)?a:null].filter(Boolean)};}}
-    }return null;
-  }
-  // Check multi-word phrases first
-  function detectCatFromPhrase(norm){
-    const phrases=[
-      ['out of station','Travel'],['game zone','Entertainment'],
-      ['school bus','Education'],['tuition fee','Education'],['tution fee','Education']
-    ];
-    for(const[phrase,cat] of phrases){if(norm.includes(phrase))return cat;}
+      if(!isNaN(dn)&&dn>=1&&dn<=31&&MONTHS[wN]!==undefined){
+        let yr=now.getFullYear();const mon=MONTHS[wN];
+        if(new Date(yr,mon,dn)>now)yr--;
+        const a=words[i+2];if(a&&/^\d{4}$/.test(a))yr=parseInt(a);
+        return{date:fd(yr,mon,dn),mw:new Set([w,wN,a&&/^\d{4}$/.test(a)?a:null].filter(Boolean))};
+      }
+      if(MONTHS[w]!==undefined){const d2=ORD[wN]||parseInt(wN);
+        if(!isNaN(d2)&&d2>=1&&d2<=31){
+          let yr=now.getFullYear();const mon=MONTHS[w];
+          if(new Date(yr,mon,d2)>now)yr--;
+          const a=words[i+2];if(a&&/^\d{4}$/.test(a))yr=parseInt(a);
+          return{date:fd(yr,mon,d2),mw:new Set([w,wN,a&&/^\d{4}$/.test(a)?a:null].filter(Boolean))};
+        }
+      }
+    }
     return null;
   }
-  const dr=parseDate(),mdw=new Set(dr?dr.mw.map(x=>x.toLowerCase()):[]);
-  let amount=0,cat=detectCatFromPhrase(norm)||'Other',catByPure=cat!=='Other';
-  const nameW=[];
-  words.forEach(w=>{
-    if(mdw.has(w))return;
-    const nn=w.replace(/[^0-9.]/g,''),n=parseFloat(nn);
-    if(!isNaN(n)&&n>0&&nn===w&&n<10000000){if(amount===0)amount=n;return;}
-    if(CW[w]){if(!catByPure){cat=CW[w];catByPure=true;}nameW.push(w);return;}
-    if(w.length>0&&!/^\d+(?:st|nd|rd|th)?$/.test(w))nameW.push(w);
-  });
-  const name=nameW.join(' ').trim(),nameP=name.charAt(0).toUpperCase()+name.slice(1)||text,finalDate=dr?dr.date:todayStr();
+
+  const dr=parseDate();
+  const dateMW=dr?dr.mw:new Set();
+  const finalDate=dr?dr.date:todayStr();
+
+  /* Step 1: detect category from multi-word phrases */
+  let cat='Other';
+  for(const[phrase,pCat] of PHRASE_CAT){
+    if(norm.includes(phrase)){cat=pCat;break;}
+  }
+
+  /* Step 2: scan words for amount + category (word-level) */
+  let amount=0;
+  const nameWords=[];
+  for(const w of words){
+    if(dateMW.has(w))continue;
+    /* Number detection */
+    const n=parseFloat(w.replace(/[^0-9.]/g,''));
+    if(!isNaN(n)&&n>0&&/^\d+(\.\d+)?$/.test(w)&&n<10000000){
+      if(amount===0)amount=n;
+      continue;
+    }
+    /* Keyword detection — only override 'Other', first match wins */
+    if(WORD_CAT[w]){
+      if(cat==='Other')cat=WORD_CAT[w];
+      nameWords.push(w);
+      continue;
+    }
+    /* Keep as name word */
+    if(w.length>0&&!/^\d+(st|nd|rd|th)?$/.test(w))nameWords.push(w);
+  }
+
+  /* Step 3: build display name */
+  const rawName=nameWords.join(' ').trim();
+  const nameP=rawName?rawName.charAt(0).toUpperCase()+rawName.slice(1):text;
+
+  /* Step 4: fill form */
   if(amount>0){
     document.getElementById('exp-name').value=nameP;
     document.getElementById('exp-amount').value=amount;
     document.getElementById('exp-cat').value=cat;
     document.getElementById('exp-date').value=finalDate;
-    setEntryType(INCOME.has(cat)?'income':'expense');
-    vf.textContent='✅ "'+nameP+'" '+amount+' ('+cat+')'+(dr?' on '+fmtDate(finalDate):'')+' — click Add';
-  }else{vf.textContent='⚠️ Amount not detected. Try: "Milk 50" or "Lunch 250" or "Salary 50000"';}
+    setEntryType(INCOME_CATS.has(cat)?'income':'expense');
+    vf.textContent='✅ "'+nameP+'" '+amount+' → '+cat+(dr?' on '+fmtDate(finalDate):'')+' — click Add';
+  }else{
+    vf.textContent='⚠️ No amount found. Try: "Milk 50" · "Bus 30" · "Salary 50000"';
+  }
 }
 </script>
 </body>
