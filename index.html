@@ -1011,7 +1011,7 @@ function parseVoice(text){
     return w.length>0&&!stopSet[w]&&!/^\d+(\.\d+)?$/.test(w)&&!/^\d+(st|nd|rd|th)$/.test(w);
   });
   var rawName=kept.join(' ').trim();
-  var nameP=rawName?rawName.charAt(0).toUpperCase()+rawName.slice(1):text;
+  var nameP=rawName?rawName.charAt(0).toUpperCase()+rawName.slice(1):cat;
 
   var isIncome=(cat==='Salary');
 
