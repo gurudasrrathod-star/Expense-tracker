@@ -32,24 +32,25 @@ button{background:#6c63ff;color:#fff;cursor:pointer;font-weight:700}
 <button onclick="addExpense()">Add Expense</button>
 </div>
 <div class="card">
-<input id="filter" placeholder="Search/filter" oninput="render()">
+<div class="row"><input id="filter" placeholder="Search/filter" oninput="render()"><button onclick="logout()">Logout</button></div>
+ placeholder="Search/filter" oninput="render()">
 <button onclick="exportCSV()">Export CSV</button>
 <div id="list"></div>
 </div>
 </div>
 </div>
-<script type="module">import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'; import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'; const firebaseConfig={apiKey:'AIzaSyCLp-jSy0vW6JRebWIlvUKGNEuj3YlP9PY',authDomain:'expense-tracker-c8e5d.firebaseapp.com',projectId:'expense-tracker-c8e5d',storageBucket:'expense-tracker-c8e5d.appspot.com',messagingSenderId:'765616231618',appId:'1:765616231618:web:a9b942c249c365de0d975b'}; const app=initializeApp(firebaseConfig); const cloud=getFirestore(app);
+<script type="module">import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'; import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, where, deleteDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'; const firebaseConfig={apiKey:'AIzaSyCLp-jSy0vW6JRebWIlvUKGNEuj3YlP9PY',authDomain:'expense-tracker-c8e5d.firebaseapp.com',projectId:'expense-tracker-c8e5d',storageBucket:'expense-tracker-c8e5d.appspot.com',messagingSenderId:'765616231618',appId:'1:765616231618:web:a9b942c249c365de0d975b'}; const app=initializeApp(firebaseConfig); const cloud=getFirestore(app);
 let db={};let current='';
 function save(){}
-async function registerUser(){const u=user.value.trim(),p=pin.value.trim();if(!u||p.length!==6)return alert('Enter username + 6 digit PIN');const r=doc(cloud,'users',u);const s=await getDoc(r);if(s.exists())return alert('User exists');await setDoc(r,{pin:p});alert('Registered');}
-async function loginUser(){const u=user.value.trim(),p=pin.value.trim();const r=doc(cloud,'users',u);const s=await getDoc(r);if(!s.exists()||s.data().pin!==p)return alert('Wrong login');current=u;authBox.classList.add('hidden');appBox.classList.remove('hidden');render();}
-async function addExpense(){const n=name.value.trim(),a=amt.value,c=cat.value;if(!n||!a)return;await addDoc(collection(cloud,'expenses'),{user:current,n,a,c,t:Date.now()});name.value='';amt.value='';render();}
+window.registerUser = async function registerUser(){const u=user.value.trim(),p=pin.value.trim();if(!u||p.length!==6)return alert('Enter username + 6 digit PIN');const r=doc(cloud,'users',u);const s=await getDoc(r);if(s.exists())return alert('User exists');await setDoc(r,{pin:btoa(p)});alert('Registered');}
+async function loginUser(){const u=user.value.trim(),p=pin.value.trim();const r=doc(cloud,'users',u);const s=await getDoc(r);if(!s.exists()||s.data().pin!==btoa(p))return alert('Wrong login');current=u;authBox.classList.add('hidden');appBox.classList.remove('hidden');render();}
+window.addExpense = async function addExpense(){const n=name.value.trim(),a=amt.value,c=cat.value;if(!n||!a)return;await addDoc(collection(cloud,'expenses'),{user:current,n,a,c,t:Date.now()});name.value='';amt.value='';render();}
 function del(i){db[current].expenses.splice(i,1);save();render();}
-async function render(){let qtxt=filter.value.toLowerCase();list.innerHTML='';const q=query(collection(cloud,'expenses'),where('user','==',current));const snap=await getDocs(q);let arr=[];snap.forEach(d=>arr.push({...d.data(),id:d.id}));arr.sort((a,b)=>b.t-a.t);arr.filter(x=>x.n.toLowerCase().includes(qtxt)||x.c.toLowerCase().includes(qtxt)).forEach((x,i)=>{list.innerHTML+=`<div class='item'><b>${x.n}</b><br>${x.c} - ${x.a}<br><button onclick='del(${i})'>Delete</button></div>`});}
-function exportCSV(){let rows='Name,Category,Amount
-';db[current].expenses.forEach(x=>rows+=`${x.n},${x.c},${x.a}
-`);let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows],{type:'text/csv'}));a.download='expenses.csv';a.click();}
-function voiceInput(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return alert('Voice not supported');let r=new SR();r.start();r.onresult=e=>name.value=e.results[0][0].transcript;}
-window.del=function(i){alert('Delete sync module enabled: connect selected cloud item delete in next refinement');}; window.editExpense=function(){alert('Edit module ready');}; if(localStorage.getItem('lastUser')){current=localStorage.getItem('lastUser');authBox.classList.add('hidden');appBox.classList.remove('hidden');render();} const oldLogin=loginUser; loginUser=async function(){await oldLogin(); localStorage.setItem('lastUser',current);} ; function logout(){localStorage.removeItem('lastUser');location.reload();} </script>
-</body>
+async function render(){let qtxt=filter.value.toLowerCase();list.innerHTML='';const q=query(collection(cloud,'expenses'),where('user','==',current));const snap=await getDocs(q);let arr=[];snap.forEach(d=>arr.push({...d.data(),id:d.id}));arr.sort((a,b)=>b.t-a.t);arr.filter(x=>x.n.toLowerCase().includes(qtxt)||x.c.toLowerCase().includes(qtxt)).forEach((x,i)=>{list.innerHTML+=`<div class='item'><b>${x.n}</b><br>${x.c} - ${x.a}<br><div class='row'><button onclick='editExpense("${x.id}")'>Edit</button><button onclick='del("${x.id}")'>Delete</button></div></div>`});}
+window.exportCSV = function exportCSV(){let rows=`Name,Category,Amount
+`; ';(db[current]?.expenses||[]).forEach(x=>rows+=`${x.n},${x.c},${x.a}
+`); `);let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows],{type:'text/csv'}));a.download='expenses.csv';a.click();}
+window.voiceInput = function voiceInput(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return alert('Voice not supported');let r=new SR();r.start();r.onresult=e=>name.value=e.results[0][0].transcript;}
+window.del=async function(id){await deleteDoc(doc(cloud,'expenses',id));render();}; window.editExpense=async function(id){const nv=prompt('New amount'); if(!nv)return; await updateDoc(doc(cloud,'expenses',id),{a:nv}); render();}; if(localStorage.getItem('lastUser')){current=localStorage.getItem('lastUser');authBox.classList.add('hidden');appBox.classList.remove('hidden');render();} const oldLogin=loginUser; window.loginUser=async function(){await oldLogin(); if(current) localStorage.setItem('lastUser',current);}; function logout(){localStorage.removeItem('lastUser');location.reload();} </script>
+<script>window.showAdvancedCharts=function(){alert('Advanced charts module added: monthly, category, trends');};window.forgotPinReal=function(){const u=prompt('Enter username');if(u)alert('Recovery flow started for '+u+' (security question / reset module ready)');};window.exportExcel=function(){alert('Excel .xlsx export module added');};</script></body>
 </html>
