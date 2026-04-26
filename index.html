@@ -307,18 +307,7 @@ select option{background:var(--surface2);}
 </header>
 <div class="container">
   <div id="sync-badge"></div>
-  <div class="stats-strip">
-    <div class="stat-card"><div class="stat-label">Total Expenses</div><div class="stat-value" id="stat-total">₹0</div></div>
-    <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value" id="stat-month">₹0</div></div>
-    <div class="stat-card"><div class="stat-label">Total Income</div><div class="stat-value" id="stat-income" style="color:var(--green)">₹0</div></div>
-    <div class="stat-card"><div class="stat-label">Net Balance</div><div class="stat-value" id="stat-balance">₹0</div></div>
-  </div>
-  <div class="charts-row">
-    <div class="chart-card"><h3>📊 By Category</h3><div class="chart-wrap"><canvas id="donut-chart"></canvas></div></div>
-    <div class="chart-card"><h3>📈 Daily (This Month)</h3><div class="chart-wrap"><canvas id="line-chart"></canvas></div></div>
-    <div class="chart-card full"><h3>📅 Monthly Totals (Last 12 Mo)</h3><div class="chart-wrap"><canvas id="bar-chart"></canvas></div></div>
-  </div>
-  <div class="form-card">
+  <div class="form-card" style="margin-bottom:20px">
     <div class="form-card-header">
       <h2>➕ Add Entry</h2>
       <div class="mic-btn-wrap">
@@ -326,14 +315,14 @@ select option{background:var(--surface2);}
         <button id="mic-btn" title="Tap to speak">🎤</button>
       </div>
     </div>
-    <div id="voice-feedback">Say e.g. "Lunch 250 food" or "Salary 50000"</div>
+    <div id="voice-feedback">Say e.g. "Lunch 250" or "Salary 50000"</div>
     <div class="type-toggle">
       <button class="type-btn active expense-btn" id="type-expense-btn" onclick="setEntryType('expense')">💸 Expense</button>
       <button class="type-btn income-btn" id="type-income-btn" onclick="setEntryType('income')">💰 Income</button>
     </div>
     <div class="form-grid">
       <div><label>Name *</label><input id="exp-name" type="text" placeholder="e.g. Lunch"/></div>
-      <div><label>Amount (₹) *</label><input id="exp-amount" type="number" placeholder="0.00" min="0" step="0.01"/></div>
+      <div><label>Amount *</label><input id="exp-amount" type="number" placeholder="0.00" min="0" step="0.01"/></div>
       <div><label>Date *</label><input id="exp-date" type="date"/></div>
       <div><label>Category</label>
         <select id="exp-cat">
@@ -353,6 +342,17 @@ select option{background:var(--surface2);}
       </div>
       <div class="full"><button class="btn-primary" id="add-btn">Add Expense</button></div>
     </div>
+  </div>
+  <div class="stats-strip">
+    <div class="stat-card"><div class="stat-label">Total Expenses</div><div class="stat-value" id="stat-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value" id="stat-month">0</div></div>
+    <div class="stat-card"><div class="stat-label">Total Income</div><div class="stat-value" id="stat-income" style="color:var(--green)">0</div></div>
+    <div class="stat-card"><div class="stat-label">Net Balance</div><div class="stat-value" id="stat-balance">0</div></div>
+  </div>
+  <div class="charts-row">
+    <div class="chart-card"><h3>📊 By Category</h3><div class="chart-wrap"><canvas id="donut-chart"></canvas></div></div>
+    <div class="chart-card"><h3>📈 Daily (This Month)</h3><div class="chart-wrap"><canvas id="line-chart"></canvas></div></div>
+    <div class="chart-card full"><h3>📅 Monthly Totals (Last 12 Mo)</h3><div class="chart-wrap"><canvas id="bar-chart"></canvas></div></div>
   </div>
   <div class="expenses-card">
     <div class="expenses-header">
@@ -393,7 +393,7 @@ select option{background:var(--surface2);}
     </div>
     <div class="form-grid">
       <div><label>Name *</label><input id="edit-name" type="text"/></div>
-      <div><label>Amount (₹) *</label><input id="edit-amount" type="number" min="0" step="0.01"/></div>
+      <div><label>Amount *</label><input id="edit-amount" type="number" min="0" step="0.01"/></div>
       <div><label>Date *</label><input id="edit-date" type="date"/></div>
       <div><label>Category</label>
         <select id="edit-cat">
@@ -566,7 +566,7 @@ function setEditType(type){
 /* ── Shared utils ── */
 function showMsg(id,msg){var el=document.getElementById(id);if(!el)return;el.textContent=msg;el.style.display='block';}
 function todayStr(){return new Date().toISOString().slice(0,10);}
-function fmtAmt(n){return '₹'+(+n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtAmt(n){return (+n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtDate(iso){return new Date(iso+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
@@ -874,7 +874,7 @@ function render(){
       <div class="exp-icon ${catCls[e.category]||'cat-other'}">${catEmoji[e.category]||'📦'}</div>
       <div class="exp-info"><div class="exp-name">${esc(e.name)}</div>
         <div class="exp-meta">${esc(e.category)} · ${fmtDate(e.date)} · <span style="color:${inc?'var(--green)':'var(--accent2)'}">${inc?'Income':'Expense'}</span></div></div>
-      <div class="exp-amount ${inc?'is-income':'is-expense'}">${inc?'+':'−'}${fmtAmt(e.amount)}</div>
+      <div class="exp-amount ${inc?'is-income':'is-expense'}">${inc?'+':''}${fmtAmt(e.amount)}</div>
       <div class="exp-actions">
         <button class="btn-icon" onclick="openEdit('${e._id}')">✏️</button>
         <button class="btn-icon del" onclick="deleteExpense('${e._id}')">🗑</button>
@@ -948,17 +948,46 @@ if('webkitSpeechRecognition'in window||'SpeechRecognition'in window){
 }else{micBtn.style.opacity='.4';micBtn.style.cursor='not-allowed';vf.textContent='Voice not supported in this browser';}
 
 function parseVoice(text){
-  const CW={food:'Food',restaurant:'Food',hotel:'Food',snack:'Food',dinner:'Food',lunch:'Food',breakfast:'Food',chai:'Food',coffee:'Food',
-    grocery:'Grocery',groceries:'Grocery',vegetable:'Grocery',vegetables:'Grocery',fruit:'Grocery',fruits:'Grocery',milk:'Grocery',bread:'Grocery',rice:'Grocery',dal:'Grocery',pulses:'Grocery',supermarket:'Grocery',kirana:'Grocery',egg:'Grocery',eggs:'Grocery',sabzi:'Grocery',
-    transport:'Transport',cab:'Transport',auto:'Transport',bus:'Transport',train:'Transport',uber:'Transport',ola:'Transport',fuel:'Transport',petrol:'Transport',rickshaw:'Transport',metro:'Transport',
-    shopping:'Shopping',clothes:'Shopping',dress:'Shopping',shirt:'Shopping',shoes:'Shopping',mall:'Shopping',amazon:'Shopping',flipkart:'Shopping',
-    utilities:'Utilities',utility:'Utilities',electricity:'Utilities',water:'Utilities',wifi:'Utilities',internet:'Utilities',gas:'Utilities',bill:'Utilities',bills:'Utilities',
+  const CW={
+    // Food
+    food:'Food',lunch:'Food',dinner:'Food',tea:'Food',breakfast:'Food',snacks:'Food',snack:'Food',
+    restaurant:'Food',hotel:'Food',chai:'Food',coffee:'Food',
+    // Grocery
+    grocery:'Grocery',groceries:'Grocery',milk:'Grocery',bread:'Grocery',vegetables:'Grocery',vegetable:'Grocery',
+    fruits:'Grocery',fruit:'Grocery',rice:'Grocery',dal:'Grocery',pulses:'Grocery',supermarket:'Grocery',
+    kirana:'Grocery',egg:'Grocery',eggs:'Grocery',sabzi:'Grocery',
+    // Transport
+    transport:'Transport',car:'Transport',rickshaw:'Transport',rixa:'Transport',taxi:'Transport',
+    bus:'Transport',petrol:'Transport',cab:'Transport',auto:'Transport',uber:'Transport',ola:'Transport',
+    fuel:'Transport',metro:'Transport',train:'Transport',
+    // Shopping
+    shopping:'Shopping',clothes:'Shopping',shoes:'Shopping',dress:'Shopping',shirt:'Shopping',
+    mall:'Shopping',amazon:'Shopping',flipkart:'Shopping',
+    // Utilities
+    utilities:'Utilities',electricity:'Utilities',gas:'Utilities',ac:'Utilities',internet:'Utilities',
+    wifi:'Utilities',water:'Utilities',bill:'Utilities',bills:'Utilities',utility:'Utilities',
+    // Rent
     rent:'Rent',house:'Rent',flat:'Rent',apartment:'Rent',
-    health:'Health',medical:'Health',medicine:'Health',doctor:'Health',hospital:'Health',pharmacy:'Health',clinic:'Health',gym:'Health',
-    education:'Education',school:'Education',college:'Education',tuition:'Education',fees:'Education',course:'Education',book:'Education',books:'Education',stationery:'Education',exam:'Education',training:'Education',
-    entertainment:'Entertainment',movie:'Entertainment',movies:'Entertainment',netflix:'Entertainment',spotify:'Entertainment',game:'Entertainment',games:'Entertainment',outing:'Entertainment',
-    travel:'Travel',trip:'Travel',flight:'Travel',vacation:'Travel',holiday:'Travel',
-    salary:'Salary',income:'Salary',stipend:'Salary',freelance:'Salary',bonus:'Salary',other:'Other'};
+    // Health
+    health:'Health',medicine:'Health',insurance:'Health',hospital:'Health',doctor:'Health',
+    medical:'Health',pharmacy:'Health',clinic:'Health',gym:'Health',
+    // Education
+    education:'Education',school:'Education',fees:'Education','school bus':'Education',
+    tuition:'Education',tution:'Education','tution fee':'Education','tuition fee':'Education',
+    college:'Education',course:'Education',book:'Education',books:'Education',
+    stationery:'Education',exam:'Education',training:'Education',
+    // Entertainment
+    entertainment:'Entertainment',movie:'Entertainment',movies:'Entertainment',
+    'game zone':'Entertainment',game:'Entertainment',games:'Entertainment',
+    netflix:'Entertainment',spotify:'Entertainment',outing:'Entertainment',
+    // Travel
+    travel:'Travel',flight:'Travel','out of station':'Travel',hotel_travel:'Travel',trip:'Travel',
+    vacation:'Travel',holiday:'Travel',
+    // Salary
+    salary:'Salary',income:'Salary',pay:'Salary',stipend:'Salary',freelance:'Salary',bonus:'Salary',
+    // Other (catch-all handled below)
+    other:'Other'
+  };
   const INCOME=new Set(['Salary']);
   const MONTHS={jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,september:8,oct:9,october:9,nov:10,november:10,dec:11,december:11};
   const ORD={'1st':1,'2nd':2,'3rd':3,'4th':4,'5th':5,'6th':6,'7th':7,'8th':8,'9th':9,'10th':10,'11th':11,'12th':12,'13th':13,'14th':14,'15th':15,'16th':16,'17th':17,'18th':18,'19th':19,'20th':20,'21st':21,'22nd':22,'23rd':23,'24th':24,'25th':25,'26th':26,'27th':27,'28th':28,'29th':29,'30th':30,'31st':31};
@@ -973,8 +1002,18 @@ function parseVoice(text){
       if(MONTHS[w]!==undefined){const d2=ORD[wN]||parseInt(wN);if(!isNaN(d2)&&d2>=1&&d2<=31){let yr=now.getFullYear();const mon=MONTHS[w];if(new Date(yr,mon,d2)>now)yr--;const a=words[i+2];if(a&&/^\d{4}$/.test(a))yr=parseInt(a);return{date:fd(yr,mon,d2),mw:[w,wN,a&&/^\d{4}$/.test(a)?a:null].filter(Boolean)};}}
     }return null;
   }
+  // Check multi-word phrases first
+  function detectCatFromPhrase(norm){
+    const phrases=[
+      ['out of station','Travel'],['game zone','Entertainment'],
+      ['school bus','Education'],['tuition fee','Education'],['tution fee','Education']
+    ];
+    for(const[phrase,cat] of phrases){if(norm.includes(phrase))return cat;}
+    return null;
+  }
   const dr=parseDate(),mdw=new Set(dr?dr.mw.map(x=>x.toLowerCase()):[]);
-  let amount=0,cat='Other',catByPure=false;const nameW=[];
+  let amount=0,cat=detectCatFromPhrase(norm)||'Other',catByPure=cat!=='Other';
+  const nameW=[];
   words.forEach(w=>{
     if(mdw.has(w))return;
     const nn=w.replace(/[^0-9.]/g,''),n=parseFloat(nn);
@@ -989,8 +1028,8 @@ function parseVoice(text){
     document.getElementById('exp-cat').value=cat;
     document.getElementById('exp-date').value=finalDate;
     setEntryType(INCOME.has(cat)?'income':'expense');
-    vf.textContent='✅ "'+nameP+'" ₹'+amount+' ('+cat+')'+(dr?' on '+fmtDate(finalDate):'')+' — click Add';
-  }else{vf.textContent='⚠️ Amount not detected. Try: "Milk 50" or "Lunch 250 food" or "Salary 50000"';}
+    vf.textContent='✅ "'+nameP+'" '+amount+' ('+cat+')'+(dr?' on '+fmtDate(finalDate):'')+' — click Add';
+  }else{vf.textContent='⚠️ Amount not detected. Try: "Milk 50" or "Lunch 250" or "Salary 50000"';}
 }
 </script>
 </body>
