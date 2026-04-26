@@ -565,7 +565,7 @@ function setEditType(type){
 
 /* ── Shared utils ── */
 function showMsg(id,msg){var el=document.getElementById(id);if(!el)return;el.textContent=msg;el.style.display='block';}
-function todayStr(){return new Date().toISOString().slice(0,10);}
+function todayStr(){var d=new Date();var y=d.getFullYear();var m=String(d.getMonth()+1).padStart(2,'0');var day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day;}
 function fmtAmt(n){return (+n).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2});}
 function fmtDate(iso){return new Date(iso+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -1006,11 +1006,13 @@ function parseVoice(text){
   /* 3. Build name (strip keywords + number) */
   var stopSet={};
   Object.keys(WORD_CAT).forEach(function(k){stopSet[k]=true;});
-  if(amount)stopSet[String(amount)]=true;
+  /* Strip all numeric tokens (amount and any other numbers) */
+  words.forEach(function(w){if(/^\d+(\.\d+)?$/.test(w))stopSet[w]=true;});
   var kept=words.filter(function(w){
     return w.length>0&&!stopSet[w]&&!/^\d+(\.\d+)?$/.test(w)&&!/^\d+(st|nd|rd|th)$/.test(w);
   });
   var rawName=kept.join(' ').trim();
+  /* If nothing meaningful remains, use the category as fallback name */
   var nameP=rawName?rawName.charAt(0).toUpperCase()+rawName.slice(1):cat;
 
   var isIncome=(cat==='Salary');
