@@ -584,6 +584,139 @@ function forgotStep2(){console.warn('Firebase not loaded yet');}
 function openEdit(id){console.warn('Firebase not loaded yet');}
 function deleteExpense(id){console.warn('Firebase not loaded yet');}
 
+
+/* ══════════════════════════════════════════
+   VOICE INPUT — lives in Script 1 so it can
+   directly call setEntryType / todayStr etc.
+   ══════════════════════════════════════════ */
+(function initVoice(){
+  var micBtn=document.getElementById('mic-btn');
+  var vf=document.getElementById('voice-feedback');
+  if(!micBtn||!vf)return;
+
+  /* ── Keyword → Category (single words) ── */
+  var WORD_CAT={
+    lunch:'Food',dinner:'Food',tea:'Food',breakfast:'Food',snacks:'Food',snack:'Food',
+    food:'Food',restaurant:'Food',chai:'Food',coffee:'Food',biryani:'Food',
+    milk:'Grocery',bread:'Grocery',vegetables:'Grocery',vegetable:'Grocery',
+    fruits:'Grocery',fruit:'Grocery',rice:'Grocery',eggs:'Grocery',egg:'Grocery',
+    grocery:'Grocery',groceries:'Grocery',sabzi:'Grocery',dal:'Grocery',kirana:'Grocery',
+    car:'Transport',rickshaw:'Transport',rixa:'Transport',taxi:'Transport',
+    bus:'Transport',petrol:'Transport',train:'Transport',auto:'Transport',
+    cab:'Transport',uber:'Transport',ola:'Transport',fuel:'Transport',metro:'Transport',
+    transport:'Transport',
+    clothes:'Shopping',shoes:'Shopping',bag:'Shopping',watch:'Shopping',
+    shopping:'Shopping',dress:'Shopping',shirt:'Shopping',mall:'Shopping',
+    electricity:'Utilities',gas:'Utilities',ac:'Utilities',internet:'Utilities',
+    wifi:'Utilities',mobile:'Utilities',bill:'Utilities',bills:'Utilities',
+    utility:'Utilities',utilities:'Utilities',
+    rent:'Rent',flat:'Rent',apartment:'Rent',
+    medicine:'Health',insurance:'Health',hospital:'Health',doctor:'Health',
+    clinic:'Health',health:'Health',medical:'Health',pharmacy:'Health',gym:'Health',
+    school:'Education',fees:'Education',tuition:'Education',tution:'Education',
+    books:'Education',book:'Education',education:'Education',college:'Education',
+    course:'Education',stationery:'Education',
+    movie:'Entertainment',movies:'Entertainment',game:'Entertainment',
+    games:'Entertainment',fun:'Entertainment',park:'Entertainment',
+    entertainment:'Entertainment',netflix:'Entertainment',outing:'Entertainment',
+    flight:'Travel',trip:'Travel',hotel:'Travel',travel:'Travel',vacation:'Travel',holiday:'Travel',
+    salary:'Salary',income:'Salary',pay:'Salary',bonus:'Salary',stipend:'Salary',freelance:'Salary'
+  };
+
+  /* ── Multi-word phrases (checked first) ── */
+  var PHRASES=[
+    ['out of station','Travel'],['train ticket','Travel'],
+    ['game zone','Entertainment'],['fun park','Entertainment'],
+    ['school bus','Education'],['tuition fee','Education'],['tution fee','Education'],
+    ['school fees','Education'],['house rent','Rent'],['mobile bill','Utilities']
+  ];
+
+  var INCOME_CATS={Salary:true};
+
+  function todayISO(){return new Date().toISOString().slice(0,10);}
+  function fmt2(n){return String(n).padStart(2,'0');}
+
+  function detectCategory(norm){
+    for(var i=0;i<PHRASES.length;i++){
+      if(norm.indexOf(PHRASES[i][0])!==-1)return PHRASES[i][1];
+    }
+    var words=norm.split(/\s+/);
+    for(var j=0;j<words.length;j++){
+      if(WORD_CAT[words[j]])return WORD_CAT[words[j]];
+    }
+    return 'Other';
+  }
+
+  function parseAmount(words){
+    for(var i=0;i<words.length;i++){
+      var n=parseFloat(words[i]);
+      if(!isNaN(n)&&n>0&&/^\d+(\.\d+)?$/.test(words[i])&&n<10000000)return n;
+    }
+    return 0;
+  }
+
+  function buildName(words, amount, cat){
+    var stopWords=new Set(Object.keys(WORD_CAT));
+    stopWords.add(String(amount));
+    var kept=words.filter(function(w){
+      return w.length>0 && !stopWords.has(w) && !/^\d+(\.\d+)?$/.test(w) && !/^\d+(st|nd|rd|th)$/.test(w);
+    });
+    var n=kept.join(' ').trim();
+    return n?n.charAt(0).toUpperCase()+n.slice(1):'';
+  }
+
+  function applyVoice(text){
+    var norm=text.toLowerCase().replace(/[,।]/g,'').trim();
+    var words=norm.split(/\s+/).filter(Boolean);
+    var cat=detectCategory(norm);
+    var amount=parseAmount(words);
+    var name=buildName(words,amount,cat)||text;
+
+    /* Always set category + type regardless of amount */
+    document.getElementById('exp-cat').value=cat;
+    setEntryType(INCOME_CATS[cat]?'income':'expense');
+
+    if(amount>0){
+      document.getElementById('exp-name').value=name;
+      document.getElementById('exp-amount').value=amount;
+      document.getElementById('exp-date').value=todayISO();
+      vf.textContent='✅ '+name+' → '+cat+' | '+amount+' — click Add';
+    }else{
+      /* Even with no amount, still show category was set */
+      vf.textContent='📂 Category set to '+cat+'. Now say the amount too. e.g. "Milk 50"';
+    }
+  }
+
+  if('webkitSpeechRecognition'in window||'SpeechRecognition'in window){
+    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    var rec=new SR();
+    rec.lang='en-IN';
+    rec.interimResults=false;
+    rec.continuous=false;
+    rec.onstart=function(){micBtn.classList.add('listening');vf.textContent='🔴 Listening…';};
+    rec.onend=function(){micBtn.classList.remove('listening');micBtn.textContent='🎤';};
+    rec.onresult=function(ev){
+      var t=ev.results[0][0].transcript.trim();
+      vf.textContent='👂 Heard: "'+t+'"';
+      applyVoice(t);
+    };
+    rec.onerror=function(ev){
+      vf.textContent='❌ Error: '+ev.error+'. Please allow microphone.';
+      micBtn.classList.remove('listening');
+      micBtn.textContent='🎤';
+    };
+    micBtn.addEventListener('click',function(){
+      if(micBtn.classList.contains('listening')){rec.stop();}
+      else{try{rec.start();micBtn.textContent='🔴';}catch(e){vf.textContent='❌ Could not start mic: '+e.message;}}
+    });
+  }else{
+    micBtn.style.opacity='.4';
+    micBtn.style.cursor='not-allowed';
+    micBtn.title='Speech recognition not supported';
+    vf.textContent='⚠️ Voice not supported in this browser. Use Chrome.';
+  }
+})();
+
 /* ── Init numpad on page load ── */
 document.addEventListener('DOMContentLoaded',function(){initMainNumpad();});
 </script>
@@ -874,7 +1007,7 @@ function render(){
       <div class="exp-icon ${catCls[e.category]||'cat-other'}">${catEmoji[e.category]||'📦'}</div>
       <div class="exp-info"><div class="exp-name">${esc(e.name)}</div>
         <div class="exp-meta">${esc(e.category)} · ${fmtDate(e.date)} · <span style="color:${inc?'var(--green)':'var(--accent2)'}">${inc?'Income':'Expense'}</span></div></div>
-      <div class="exp-amount" style="color:${inc?'var(--green)':'var(--text)'}">${inc?'+ ':' '}${fmtAmt(e.amount)}</div>
+      <div class="exp-amount" style="color:${inc?'var(--green)':'var(--text)'}">${inc?'+ ':''}${fmtAmt(e.amount)}</div>
       <div class="exp-actions">
         <button class="btn-icon" onclick="openEdit('${e._id}')">✏️</button>
         <button class="btn-icon del" onclick="deleteExpense('${e._id}')">🗑</button>
@@ -935,160 +1068,7 @@ document.getElementById('export-csv').addEventListener('click',()=>{
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='expenses_'+todayStr()+'.csv';a.click();
 });
 
-/* ── Voice ── */
-const micBtn=document.getElementById('mic-btn'),vf=document.getElementById('voice-feedback');
-if('webkitSpeechRecognition'in window||'SpeechRecognition'in window){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition,rec=new SR();
-  rec.lang='en-IN';rec.interimResults=false;
-  rec.onstart=()=>{micBtn.classList.add('listening');vf.textContent='🔴 Listening…';};
-  rec.onend=()=>{micBtn.classList.remove('listening');micBtn.textContent='🎤';};
-  rec.onresult=ev=>{const t=ev.results[0][0].transcript.trim();vf.textContent='✅ Heard: '+t;parseVoice(t);};
-  rec.onerror=ev=>{vf.textContent='❌ '+ev.error;micBtn.classList.remove('listening');};
-  micBtn.addEventListener('click',()=>{if(micBtn.classList.contains('listening'))rec.stop();else{rec.start();micBtn.textContent='🔴';}});
-}else{micBtn.style.opacity='.4';micBtn.style.cursor='not-allowed';vf.textContent='Voice not supported in this browser';}
-
-function parseVoice(text){
-  /* ── Keyword → Category map (single words, checked word by word) ── */
-  const WORD_CAT={
-    // Food
-    lunch:'Food',dinner:'Food',tea:'Food',breakfast:'Food',snacks:'Food',snack:'Food',
-    food:'Food',restaurant:'Food',chai:'Food',coffee:'Food',biryani:'Food',pizza:'Food',
-    // Grocery
-    milk:'Grocery',bread:'Grocery',vegetables:'Grocery',vegetable:'Grocery',
-    fruits:'Grocery',fruit:'Grocery',rice:'Grocery',eggs:'Grocery',egg:'Grocery',
-    grocery:'Grocery',groceries:'Grocery',sabzi:'Grocery',dal:'Grocery',kirana:'Grocery',
-    // Transport
-    car:'Transport',rickshaw:'Transport',rixa:'Transport',taxi:'Transport',
-    bus:'Transport',petrol:'Transport',train:'Transport',auto:'Transport',
-    cab:'Transport',uber:'Transport',ola:'Transport',fuel:'Transport',metro:'Transport',
-    transport:'Transport',
-    // Shopping
-    clothes:'Shopping',shoes:'Shopping',bag:'Shopping',watch:'Shopping',
-    shopping:'Shopping',dress:'Shopping',shirt:'Shopping',mall:'Shopping',
-    // Utilities
-    electricity:'Utilities',gas:'Utilities',ac:'Utilities',internet:'Utilities',
-    wifi:'Utilities',mobile:'Utilities',bill:'Utilities',bills:'Utilities',
-    utility:'Utilities',utilities:'Utilities',water:'Utilities',
-    // Rent
-    rent:'Rent',flat:'Rent',apartment:'Rent',
-    // Health
-    medicine:'Health',insurance:'Health',hospital:'Health',doctor:'Health',
-    clinic:'Health',health:'Health',medical:'Health',pharmacy:'Health',gym:'Health',
-    // Education
-    school:'Education',fees:'Education',tuition:'Education',tution:'Education',
-    books:'Education',book:'Education',education:'Education',college:'Education',
-    course:'Education',stationery:'Education',exam:'Education',
-    // Entertainment
-    movie:'Entertainment',movies:'Entertainment',game:'Entertainment',
-    games:'Entertainment',fun:'Entertainment',park:'Entertainment',
-    entertainment:'Entertainment',netflix:'Entertainment',outing:'Entertainment',
-    // Travel
-    flight:'Travel',trip:'Travel',hotel:'Travel',travel:'Travel',
-    vacation:'Travel',holiday:'Travel',
-    // Salary / Income
-    salary:'Salary',income:'Salary',pay:'Salary',bonus:'Salary',
-    stipend:'Salary',freelance:'Salary',payment:'Salary'
-  };
-
-  /* ── Multi-word phrases (checked before splitting into words) ── */
-  const PHRASE_CAT=[
-    ['out of station','Travel'],
-    ['train ticket','Travel'],
-    ['game zone','Entertainment'],
-    ['fun park','Entertainment'],
-    ['school bus','Education'],
-    ['tuition fee','Education'],
-    ['tution fee','Education'],
-    ['school fees','Education'],
-    ['house rent','Rent'],
-    ['mobile bill','Utilities']
-  ];
-
-  const INCOME_CATS=new Set(['Salary']);
-
-  const norm=text.toLowerCase().replace(/[,]/g,'');
-  const words=norm.split(/\s+/).filter(Boolean);
-
-  /* ── Date parsing ── */
-  const MONTHS={jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,
-    jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,september:8,oct:9,october:9,
-    nov:10,november:10,dec:11,december:11};
-  const ORD={};
-  ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th','13th',
-   '14th','15th','16th','17th','18th','19th','20th','21st','22nd','23rd','24th','25th',
-   '26th','27th','28th','29th','30th','31st'].forEach((s,i)=>ORD[s]=i+1);
-
-  function fd(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
-  function parseDate(){
-    const now=new Date();
-    for(let i=0;i<words.length;i++){
-      const w=words[i],wN=words[i+1]||'';
-      const dn=ORD[w]||parseInt(w);
-      if(!isNaN(dn)&&dn>=1&&dn<=31&&MONTHS[wN]!==undefined){
-        let yr=now.getFullYear();const mon=MONTHS[wN];
-        if(new Date(yr,mon,dn)>now)yr--;
-        const a=words[i+2];if(a&&/^\d{4}$/.test(a))yr=parseInt(a);
-        return{date:fd(yr,mon,dn),mw:new Set([w,wN,a&&/^\d{4}$/.test(a)?a:null].filter(Boolean))};
-      }
-      if(MONTHS[w]!==undefined){const d2=ORD[wN]||parseInt(wN);
-        if(!isNaN(d2)&&d2>=1&&d2<=31){
-          let yr=now.getFullYear();const mon=MONTHS[w];
-          if(new Date(yr,mon,d2)>now)yr--;
-          const a=words[i+2];if(a&&/^\d{4}$/.test(a))yr=parseInt(a);
-          return{date:fd(yr,mon,d2),mw:new Set([w,wN,a&&/^\d{4}$/.test(a)?a:null].filter(Boolean))};
-        }
-      }
-    }
-    return null;
-  }
-
-  const dr=parseDate();
-  const dateMW=dr?dr.mw:new Set();
-  const finalDate=dr?dr.date:todayStr();
-
-  /* Step 1: detect category from multi-word phrases */
-  let cat='Other';
-  for(const[phrase,pCat] of PHRASE_CAT){
-    if(norm.includes(phrase)){cat=pCat;break;}
-  }
-
-  /* Step 2: scan words for amount + category (word-level) */
-  let amount=0;
-  const nameWords=[];
-  for(const w of words){
-    if(dateMW.has(w))continue;
-    /* Number detection */
-    const n=parseFloat(w.replace(/[^0-9.]/g,''));
-    if(!isNaN(n)&&n>0&&/^\d+(\.\d+)?$/.test(w)&&n<10000000){
-      if(amount===0)amount=n;
-      continue;
-    }
-    /* Keyword detection — only override 'Other', first match wins */
-    if(WORD_CAT[w]){
-      if(cat==='Other')cat=WORD_CAT[w];
-      nameWords.push(w);
-      continue;
-    }
-    /* Keep as name word */
-    if(w.length>0&&!/^\d+(st|nd|rd|th)?$/.test(w))nameWords.push(w);
-  }
-
-  /* Step 3: build display name */
-  const rawName=nameWords.join(' ').trim();
-  const nameP=rawName?rawName.charAt(0).toUpperCase()+rawName.slice(1):text;
-
-  /* Step 4: fill form */
-  if(amount>0){
-    document.getElementById('exp-name').value=nameP;
-    document.getElementById('exp-amount').value=amount;
-    document.getElementById('exp-cat').value=cat;
-    document.getElementById('exp-date').value=finalDate;
-    setEntryType(INCOME_CATS.has(cat)?'income':'expense');
-    vf.textContent='✅ "'+nameP+'" '+amount+' → '+cat+(dr?' on '+fmtDate(finalDate):'')+' — click Add';
-  }else{
-    vf.textContent='⚠️ No amount found. Try: "Milk 50" · "Bus 30" · "Salary 50000"';
-  }
-}
+/* Voice init moved to Script 1 */
 </script>
 </body>
 </html>
