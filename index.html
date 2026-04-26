@@ -948,32 +948,45 @@ if('webkitSpeechRecognition'in window||'SpeechRecognition'in window){
 }else{micBtn.style.opacity='.4';micBtn.style.cursor='not-allowed';vf.textContent='Voice not supported in this browser';}
 
 function parseVoice(text){
+  /* WORD_CAT: maps spoken item words → category.
+     Key  = the actual item name the user says (e.g. "milk", "petrol").
+     These words are KEPT in the name — they ARE the item.
+     Only pure-category/generic words (food, grocery, transport…) are treated as filler. */
   var WORD_CAT={
     lunch:'Food',dinner:'Food',tea:'Food',breakfast:'Food',snacks:'Food',snack:'Food',
-    food:'Food',chai:'Food',coffee:'Food',biryani:'Food',
+    chai:'Food',coffee:'Food',biryani:'Food',
     milk:'Grocery',bread:'Grocery',vegetables:'Grocery',vegetable:'Grocery',
     fruits:'Grocery',fruit:'Grocery',rice:'Grocery',eggs:'Grocery',egg:'Grocery',
-    grocery:'Grocery',groceries:'Grocery',sabzi:'Grocery',dal:'Grocery',kirana:'Grocery',
-    car:'Transport',rickshaw:'Transport',rixa:'Transport',taxi:'Transport',
+    sabzi:'Grocery',dal:'Grocery',kirana:'Grocery',
+    rickshaw:'Transport',rixa:'Transport',taxi:'Transport',
     bus:'Transport',petrol:'Transport',train:'Transport',auto:'Transport',
-    cab:'Transport',fuel:'Transport',metro:'Transport',transport:'Transport',
+    cab:'Transport',fuel:'Transport',metro:'Transport',
     clothes:'Shopping',shoes:'Shopping',bag:'Shopping',watch:'Shopping',
-    shopping:'Shopping',dress:'Shopping',shirt:'Shopping',
+    dress:'Shopping',shirt:'Shopping',
     electricity:'Utilities',gas:'Utilities',ac:'Utilities',internet:'Utilities',
     wifi:'Utilities',mobile:'Utilities',bill:'Utilities',bills:'Utilities',
-    utility:'Utilities',utilities:'Utilities',
     rent:'Rent',flat:'Rent',apartment:'Rent',
     medicine:'Health',insurance:'Health',hospital:'Health',doctor:'Health',
-    clinic:'Health',health:'Health',pharmacy:'Health',gym:'Health',
+    clinic:'Health',pharmacy:'Health',gym:'Health',
     school:'Education',fees:'Education',tuition:'Education',tution:'Education',
-    books:'Education',book:'Education',education:'Education',college:'Education',
+    books:'Education',book:'Education',college:'Education',
     movie:'Entertainment',movies:'Entertainment',game:'Entertainment',
-    games:'Entertainment',entertainment:'Entertainment',netflix:'Entertainment',
-    flight:'Travel',trip:'Travel',hotel:'Travel',travel:'Travel',
+    games:'Entertainment',netflix:'Entertainment',
+    flight:'Travel',trip:'Travel',hotel:'Travel',
     vacation:'Travel',holiday:'Travel',
-    salary:'Salary',income:'Salary',pay:'Salary',bonus:'Salary',
-    stipend:'Salary',freelance:'Salary'
+    salary:'Salary',bonus:'Salary',stipend:'Salary',freelance:'Salary'
   };
+
+  /* GENERIC_ONLY: words that indicate category but are NOT useful item names.
+     These are stripped from the name. */
+  var GENERIC_ONLY={
+    food:true,grocery:true,groceries:true,transport:true,car:true,
+    shopping:true,utility:true,utilities:true,health:true,education:true,
+    entertainment:true,travel:true,income:true,pay:true,expense:true,
+    bought:true,paid:true,spent:true,for:true,on:true,the:true,
+    rupees:true,rs:true,inr:true,rupe:true
+  };
+
   var PHRASES=[
     ['out of station','Travel'],['train ticket','Travel'],
     ['game zone','Entertainment'],['fun park','Entertainment'],
@@ -985,48 +998,65 @@ function parseVoice(text){
   var norm=text.toLowerCase().replace(/[,।]/g,'').trim();
   var words=norm.split(/\s+/).filter(Boolean);
 
-  /* 1. Detect category */
+  /* 1. Detect category + remember which word/phrase matched */
   var cat='Other';
+  var matchedPhrase='';
+  var matchedWord='';
+
   for(var pi=0;pi<PHRASES.length;pi++){
-    if(norm.indexOf(PHRASES[pi][0])!==-1){cat=PHRASES[pi][1];break;}
+    if(norm.indexOf(PHRASES[pi][0])!==-1){cat=PHRASES[pi][1];matchedPhrase=PHRASES[pi][0];break;}
   }
   if(cat==='Other'){
     for(var wi=0;wi<words.length;wi++){
-      if(WORD_CAT[words[wi]]){cat=WORD_CAT[words[wi]];break;}
+      if(WORD_CAT[words[wi]]){cat=WORD_CAT[words[wi]];matchedWord=words[wi];break;}
     }
   }
 
-  /* 2. Detect amount */
+  /* 2. Detect amount (first standalone number) */
   var amount=0;
+  var amountWord='';
   for(var ai=0;ai<words.length;ai++){
     var n=parseFloat(words[ai]);
-    if(!isNaN(n)&&n>0&&/^\d+(\.\d+)?$/.test(words[ai])&&n<10000000){amount=n;break;}
+    if(!isNaN(n)&&n>0&&/^\d+(\.\d+)?$/.test(words[ai])&&n<10000000){amount=n;amountWord=words[ai];break;}
   }
 
-  /* 3. Build name (strip keywords + number) */
-  var stopSet={};
-  Object.keys(WORD_CAT).forEach(function(k){stopSet[k]=true;});
-  /* Strip all numeric tokens (amount and any other numbers) */
-  words.forEach(function(w){if(/^\d+(\.\d+)?$/.test(w))stopSet[w]=true;});
+  /* 3. Build name:
+     - Start with all words
+     - Remove generic-only filler words
+     - Remove numbers
+     - Remove ordinal numbers (1st, 2nd…)
+     - Remove matched phrase words (they are the category, not the item)
+     - Keep WORD_CAT matched words — they ARE the item name (milk, petrol, lunch…)
+  */
+  var phraseWords={};
+  if(matchedPhrase){matchedPhrase.split(/\s+/).forEach(function(w){phraseWords[w]=true;});}
+
   var kept=words.filter(function(w){
-    return w.length>0&&!stopSet[w]&&!/^\d+(\.\d+)?$/.test(w)&&!/^\d+(st|nd|rd|th)$/.test(w);
+    if(!w)return false;
+    if(/^\d+(\.\d+)?$/.test(w))return false;          // numbers
+    if(/^\d+(st|nd|rd|th)$/.test(w))return false;     // ordinals
+    if(GENERIC_ONLY[w])return false;                   // generic category filler
+    if(phraseWords[w])return false;                    // matched phrase parts
+    return true;
   });
+
   var rawName=kept.join(' ').trim();
-  /* If nothing meaningful remains, use the category as fallback name */
-  var nameP=rawName?rawName.charAt(0).toUpperCase()+rawName.slice(1):cat;
+  /* Capitalise first letter */
+  var nameP=rawName?rawName.charAt(0).toUpperCase()+rawName.slice(1)
+    :(matchedWord?matchedWord.charAt(0).toUpperCase()+matchedWord.slice(1):cat);
 
   var isIncome=(cat==='Salary');
 
-  /* 4. Set type (category preserved for expense, Salary auto-set for income) */
+  /* 4. Set type */
   setEntryType(isIncome?'income':'expense');
   if(!isIncome){document.getElementById('exp-cat').value=cat;}
 
-  /* 5. Fill remaining fields */
+  /* 5. Fill fields */
   if(amount){
     document.getElementById('exp-name').value=nameP;
     document.getElementById('exp-amount').value=amount;
     document.getElementById('exp-date').value=todayStr();
-    vf.textContent='✅ '+nameP+' → '+cat+' | '+amount+' — click Add';
+    vf.textContent='✅ '+nameP+' | '+cat+' | ₹'+amount+' — click Add';
   }else{
     vf.textContent='📂 Category set to '+cat+'. Say amount too — e.g. "Milk 50"';
   }
