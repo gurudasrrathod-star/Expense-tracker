@@ -804,7 +804,7 @@ document.getElementById('add-btn').addEventListener('click',async()=>{
   try{
     await addDoc(collection(db,'expenses'),{uid:currentUser.uid,name,amount,date,category:cat,type:currentEntryType,createdAt:serverTimestamp()});
     document.getElementById('exp-name').value='';document.getElementById('exp-amount').value='';
-    document.getElementById('exp-date').value=todayStr();
+    document.getElementById('exp-date').value=parsedDate||todayStr();
     document.getElementById('voice-feedback').textContent='✅ Saved!';
     setTimeout(()=>document.getElementById('voice-feedback').textContent='Say e.g. "Lunch 250 food" or "Salary 50000"',2000);
   }catch(e){console.error(e);alert('Error saving.');}
@@ -998,6 +998,33 @@ function parseVoice(text){
   var norm=text.toLowerCase().replace(/[,।]/g,'').trim();
   var words=norm.split(/\s+/).filter(Boolean);
 
+  /* 0. Detect spoken date */
+  var MONTHS={january:1,jan:1,february:2,feb:2,march:3,mar:3,april:4,apr:4,may:5,june:6,jun:6,july:7,jul:7,august:8,aug:8,september:9,sep:9,sept:9,october:10,oct:10,november:11,nov:11,december:12,dec:12};
+  var parsedDate='';
+  var dateWords={};
+  function buildDateStr(day,month,year){var y=year||new Date().getFullYear();return y+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0');}
+  if(norm.indexOf('yesterday')!==-1){var yd=new Date();yd.setDate(yd.getDate()-1);parsedDate=yd.getFullYear()+'-'+String(yd.getMonth()+1).padStart(2,'0')+'-'+String(yd.getDate()).padStart(2,'0');dateWords['yesterday']=true;}
+  else if(norm.indexOf('today')!==-1){parsedDate=todayStr();dateWords['today']=true;}
+  if(!parsedDate){
+    for(var di=0;di<words.length;di++){
+      var dw=words[di];
+      var dayNum=parseInt(dw.replace(/(st|nd|rd|th)$/,''));
+      var isDay=!isNaN(dayNum)&&dayNum>=1&&dayNum<=31&&/^\d{1,2}(st|nd|rd|th)?$/.test(dw);
+      if(isDay&&di+1<words.length&&MONTHS[words[di+1]]){
+        var mon=MONTHS[words[di+1]];var yr=0;
+        if(di+2<words.length&&/^\d{4}$/.test(words[di+2])){yr=parseInt(words[di+2]);dateWords[words[di+2]]=true;}
+        parsedDate=buildDateStr(dayNum,mon,yr);dateWords[dw]=true;dateWords[words[di+1]]=true;break;
+      } else if(MONTHS[dw]&&di+1<words.length){
+        var nd2=parseInt(words[di+1].replace(/(st|nd|rd|th)$/,''));
+        if(!isNaN(nd2)&&nd2>=1&&nd2<=31){
+          var nm2=MONTHS[dw];var ny2=0;
+          if(di+2<words.length&&/^\d{4}$/.test(words[di+2])){ny2=parseInt(words[di+2]);dateWords[words[di+2]]=true;}
+          parsedDate=buildDateStr(nd2,nm2,ny2);dateWords[dw]=true;dateWords[words[di+1]]=true;break;
+        }
+      }
+    }
+  }
+
   /* 1. Detect category + remember which word/phrase matched */
   var cat='Other';
   var matchedPhrase='';
@@ -1037,6 +1064,7 @@ function parseVoice(text){
     if(/^\d+(st|nd|rd|th)$/.test(w))return false;     // ordinals
     if(GENERIC_ONLY[w])return false;                   // generic category filler
     if(phraseWords[w])return false;                    // matched phrase parts
+    if(dateWords[w])return false;                      // date words
     return true;
   });
 
@@ -1056,7 +1084,7 @@ function parseVoice(text){
     document.getElementById('exp-name').value=nameP;
     document.getElementById('exp-amount').value=amount;
     document.getElementById('exp-date').value=todayStr();
-    vf.textContent='✅ '+nameP+' | '+cat+' | ₹'+amount+' — click Add';
+    var usedDate=parsedDate||todayStr();var dateLabel=parsedDate?(' | '+usedDate):'';vf.textContent='✅ '+nameP+' | '+cat+' | ₹'+amount+dateLabel+' — click Add';
   }else{
     vf.textContent='📂 Category set to '+cat+'. Say amount too — e.g. "Milk 50"';
   }
