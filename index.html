@@ -998,29 +998,53 @@ function parseVoice(text){
   var norm=text.toLowerCase().replace(/[,।]/g,'').trim();
   var words=norm.split(/\s+/).filter(Boolean);
 
-  /* 0. Detect spoken date */
+  /* 0. Detect spoken date — MUST run before amount detection so day numbers aren't grabbed as amount */
   var MONTHS={january:1,jan:1,february:2,feb:2,march:3,mar:3,april:4,apr:4,may:5,june:6,jun:6,july:7,jul:7,august:8,aug:8,september:9,sep:9,sept:9,october:10,oct:10,november:11,nov:11,december:12,dec:12};
   var parsedDate='';
   var dateWords={};
+  var dateNumWords={};  /* index of number-words that are DAY numbers, not amounts */
   function buildDateStr(day,month,year){var y=year||new Date().getFullYear();return y+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0');}
-  if(norm.indexOf('yesterday')!==-1){var yd=new Date();yd.setDate(yd.getDate()-1);parsedDate=yd.getFullYear()+'-'+String(yd.getMonth()+1).padStart(2,'0')+'-'+String(yd.getDate()).padStart(2,'0');dateWords['yesterday']=true;}
-  else if(norm.indexOf('today')!==-1){parsedDate=todayStr();dateWords['today']=true;}
+
+  if(norm.indexOf('yesterday')!==-1){
+    var yd=new Date();yd.setDate(yd.getDate()-1);
+    parsedDate=yd.getFullYear()+'-'+String(yd.getMonth()+1).padStart(2,'0')+'-'+String(yd.getDate()).padStart(2,'0');
+    dateWords['yesterday']=true;
+  } else if(norm.indexOf('today')!==-1){
+    parsedDate=todayStr();dateWords['today']=true;
+  }
+
   if(!parsedDate){
+    /* Strategy: find a MONTH word, then look LEFT and RIGHT for a 1-2 digit day number.
+       This correctly handles: "milk april 20", "20 april milk", "april 20th milk", "milk 20 april" */
     for(var di=0;di<words.length;di++){
-      var dw=words[di];
-      var dayNum=parseInt(dw.replace(/(st|nd|rd|th)$/,''));
-      var isDay=!isNaN(dayNum)&&dayNum>=1&&dayNum<=31&&/^\d{1,2}(st|nd|rd|th)?$/.test(dw);
-      if(isDay&&di+1<words.length&&MONTHS[words[di+1]]){
-        var mon=MONTHS[words[di+1]];var yr=0;
-        if(di+2<words.length&&/^\d{4}$/.test(words[di+2])){yr=parseInt(words[di+2]);dateWords[words[di+2]]=true;}
-        parsedDate=buildDateStr(dayNum,mon,yr);dateWords[dw]=true;dateWords[words[di+1]]=true;break;
-      } else if(MONTHS[dw]&&di+1<words.length){
-        var nd2=parseInt(words[di+1].replace(/(st|nd|rd|th)$/,''));
-        if(!isNaN(nd2)&&nd2>=1&&nd2<=31){
-          var nm2=MONTHS[dw];var ny2=0;
-          if(di+2<words.length&&/^\d{4}$/.test(words[di+2])){ny2=parseInt(words[di+2]);dateWords[words[di+2]]=true;}
-          parsedDate=buildDateStr(nd2,nm2,ny2);dateWords[dw]=true;dateWords[words[di+1]]=true;break;
+      if(!MONTHS[words[di]])continue;
+      var mName=words[di];var mNum=MONTHS[mName];
+      var dayVal=0;var dayWd='';var yrVal=0;var yrWd='';
+
+      /* Look at adjacent words for day (1-31) and optional year (4-digit) */
+      var neighbors=[];
+      if(di>0)neighbors.push({idx:di-1,w:words[di-1]});
+      if(di+1<words.length)neighbors.push({idx:di+1,w:words[di+1]});
+      if(di+2<words.length)neighbors.push({idx:di+2,w:words[di+2]});
+
+      for(var ni=0;ni<neighbors.length;ni++){
+        var nb=neighbors[ni];
+        var stripped=nb.w.replace(/(st|nd|rd|th)$/,'');
+        var num=parseInt(stripped);
+        if(!isNaN(num)&&/^\d{1,2}(st|nd|rd|th)?$/.test(nb.w)&&num>=1&&num<=31&&!dayVal){
+          dayVal=num;dayWd=nb.w;
+        } else if(!isNaN(num)&&/^\d{4}$/.test(nb.w)&&!yrVal){
+          yrVal=num;yrWd=nb.w;
         }
+      }
+
+      if(dayVal){
+        parsedDate=buildDateStr(dayVal,mNum,yrVal);
+        dateWords[mName]=true;
+        dateWords[dayWd]=true;
+        dateNumWords[dayWd]=true;  /* mark this number as a day, not the amount */
+        if(yrWd){dateWords[yrWd]=true;}
+        break;
       }
     }
   }
@@ -1039,10 +1063,11 @@ function parseVoice(text){
     }
   }
 
-  /* 2. Detect amount (first standalone number) */
+  /* 2. Detect amount (first standalone number that is NOT a day-number used in date) */
   var amount=0;
   var amountWord='';
   for(var ai=0;ai<words.length;ai++){
+    if(dateNumWords[words[ai]])continue;   /* skip numbers already used as day */
     var n=parseFloat(words[ai]);
     if(!isNaN(n)&&n>0&&/^\d+(\.\d+)?$/.test(words[ai])&&n<10000000){amount=n;amountWord=words[ai];break;}
   }
@@ -1083,7 +1108,7 @@ function parseVoice(text){
   if(amount){
     document.getElementById('exp-name').value=nameP;
     document.getElementById('exp-amount').value=amount;
-    document.getElementById('exp-date').value=todayStr();
+    document.getElementById('exp-date').value=parsedDate||todayStr();
     var usedDate=parsedDate||todayStr();var dateLabel=parsedDate?(' | '+usedDate):'';vf.textContent='✅ '+nameP+' | '+cat+' | ₹'+amount+dateLabel+' — click Add';
   }else{
     vf.textContent='📂 Category set to '+cat+'. Say amount too — e.g. "Milk 50"';
