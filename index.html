@@ -804,7 +804,7 @@ document.getElementById('add-btn').addEventListener('click',async()=>{
   try{
     await addDoc(collection(db,'expenses'),{uid:currentUser.uid,name,amount,date,category:cat,type:currentEntryType,createdAt:serverTimestamp()});
     document.getElementById('exp-name').value='';document.getElementById('exp-amount').value='';
-    document.getElementById('exp-date').value=parsedDate||todayStr();
+    document.getElementById('exp-date').value=todayStr();
     document.getElementById('voice-feedback').textContent='✅ Saved!';
     setTimeout(()=>document.getElementById('voice-feedback').textContent='Say e.g. "Lunch 250 food" or "Salary 50000"',2000);
   }catch(e){console.error(e);alert('Error saving.');}
