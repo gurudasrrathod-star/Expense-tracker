@@ -984,7 +984,9 @@ function parseVoice(text){
     shopping:true,utility:true,utilities:true,health:true,education:true,
     entertainment:true,travel:true,income:true,pay:true,expense:true,
     bought:true,paid:true,spent:true,for:true,on:true,the:true,
-    rupees:true,rs:true,inr:true,rupe:true
+    rupees:true,rs:true,inr:true,rupe:true,
+    is:true,a:true,an:true,of:true,and:true,my:true,some:true,
+    ke:true,ka:true,ki:true,ne:true,ko:true,se:true
   };
 
   var PHRASES=[
@@ -1023,6 +1025,7 @@ function parseVoice(text){
 
       /* Look at adjacent words for day (1-31) and optional year (4-digit) */
       var neighbors=[];
+      if(di>1)neighbors.push({idx:di-2,w:words[di-2]});
       if(di>0)neighbors.push({idx:di-1,w:words[di-1]});
       if(di+1<words.length)neighbors.push({idx:di+1,w:words[di+1]});
       if(di+2<words.length)neighbors.push({idx:di+2,w:words[di+2]});
@@ -1063,13 +1066,14 @@ function parseVoice(text){
     }
   }
 
-  /* 2. Detect amount (first standalone number that is NOT a day-number used in date) */
+  /* 2. Detect amount (skip numbers consumed by date parser as day/year) */
   var amount=0;
   var amountWord='';
   for(var ai=0;ai<words.length;ai++){
-    if(dateNumWords[words[ai]])continue;   /* skip numbers already used as day */
-    var n=parseFloat(words[ai]);
-    if(!isNaN(n)&&n>0&&/^\d+(\.\d+)?$/.test(words[ai])&&n<10000000){amount=n;amountWord=words[ai];break;}
+    var aw=words[ai];
+    if(dateWords[aw])continue;      /* skip month names, day numbers, year numbers */
+    var n=parseFloat(aw);
+    if(!isNaN(n)&&n>0&&/^\d+(\.\d+)?$/.test(aw)&&n<10000000){amount=n;amountWord=aw;break;}
   }
 
   /* 3. Build name:
